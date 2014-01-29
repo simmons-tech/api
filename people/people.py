@@ -7,7 +7,7 @@ sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../utils') ) )
 from sdb import Resident, ActiveUsernames, sdb_session
 
 # Setup flask basics.
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 app = Flask(__name__)
 
 # BEGIN HELPERS ###########################################
@@ -68,11 +68,16 @@ def get_active_residents():
 
 @app.route('/')
 def serve_active_residents():
+	if request.args.get('q'):
+		return  serve_query( request.args.get('q') )
 	return render_template('residents.json', residents = get_active_residents() )
 
 @app.route('/<username>/')
 def serve_person( username ):
 	return render_template('resident.json', resident = get_person( username ) )
+
+def serve_query( query ):
+	return "Query: " + query # TODO: serve query response...
 
 # END API #################################################
 
