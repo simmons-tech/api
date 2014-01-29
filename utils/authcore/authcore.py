@@ -1,8 +1,8 @@
-# This is a work in progress, MVP implementation. Please do not assume it is secure, because it is not in pretty much literally every way imagininable.
+# This is a work in progress, MVP implementation. Please do not assume it is secure, because it is not in pretty much literally every way imaginable.
 # DO NOT DEPLOY THIS UNTIL IT HAS BEEN FIXED.
-# The complete implementation will be based on 858 code, but will need to be modified to aupport SSO based on MIT certs.
+# The complete implementation will be based on 858 code, but will need to be modified to support SSO based on MIT certs.
 #
-# This file seeks to implement the backend of the RPC described at
+# This file seeks to implement the back-end of the RPC described at
 # https://github.com/simmons-tech/wiki/wiki/Authentication-API
 
 ## TEMP INIT
@@ -120,7 +120,7 @@ def validate_token( user, token ):
 
 ### Membership
 
-# TODO: Protect against loops.
+# TODO: Protect against loops? Maybe do that during registration.
 
 def is_member( user, group ):
 	assert is_user( user )
@@ -144,76 +144,122 @@ def subgroups( group ):
 	assert is_group( group )
 	return groups[ group ].subgroups
 
-### Account managment
+### restricted decorator ###
+#
+# A key part of the authcore; allows for easy use of the auth module in other APIs.
+#
+# When applied to a function, it integrates with the authentication module.
+# For now, this does mean that it changes the function header slightly.
+#
+# f( x1, x2, ... ) -> f( user, token, x1, x2, ... )
+#
+# To restrict a function f to either (group) "simmons-tech", (group) "accounts-admin", or (user) "woursler":
+#
+## @restricted([ "simmons-tech", "accounts-admin", "woursler" ])
+## def f( x1, x2 ):
+## 	dangerous_stuff_here
+#
+# There is an additional argument require_all. If set to true, the user must match every constraint passed
+# in the list.
+#
+# i.e. @restricted([ "simmons-tech", "accounts-admin" ]) restricts usage to people who are in both groups
+# (as opposed to just one or the other).
+#
+# See the Wiki article on /auth/ for more details on usage and security guarantees.
+#
+# TL;DR, this decorator is for convenience and does not provide security against an
+# adversary with code execution over your relevant environment.
+#
+# TODO: Make a variant for HMAC'd messages?
+#
+###
 
-def create_user( user, password, admin_user, admin_token ):
-	# Pre-permissions sanity check.
-	assert is_user( admin_user )
+def restricted( names, require_all = False ):
+	# Support passing a single name.
+	if isinstance( names, basestring ):
+		names = [ names ]
+	def restricted_decorator( f ):
+		def decorated_f( user, token, *args, **kwargs ):
+			# Pre-permissions sanity check.
+			assert is_user( user )
+			for name in names:
+				assert type_of( name ) != None
 
-	# Permissions Check.
-	assert validate_token( admin_user, admin_token )
-	assert is_member( admin_user, "accounts-admin" )
+			# Permissions Check.
+			# Validate that the user requesting access is who they say they are.
+			assert validate_token( user, token )
+			# For each name, check membership.
+			approval = set()
+			for name in names:
+				if type_of( name ) == 'user':
+					approval.add( name == user )
+				if type_of( name ) == 'group':
+					approval.add( is_member( user, name ) )
+			
+			if require_all:
+				assert False not in approval
+			else:
+				assert True in approval
 
-	# Post-pemissions sanity check.	
-	assert type_of( name ) == None
-	assert type_of( owner ) != None
+			f( *args, **kwargs )
+		return decorated_f
+	return restricted_decorator
 
+### Account management
+
+@restricted( "accounts-admin" )
+def create_user( user, password ):
+	assert type_of( user ) == None
+	
 	U = User( user, password )
 	users[ user ] = U
 
-def create_group( group, admin_user, admin_token, owner = "accounts-admin" ):
-	# Pre-permissions sanity check.
-	assert is_user( admin_user )
-
-	# Permissions Check.
-	assert validate_token( admin_user, admin_token )
-	assert is_member( admin_user, "accounts-admin" )
-
-	# Post-pemissions sanity check.	
-	assert type_of( name ) == None
+@restricted( "accounts-admin" )
+def create_group( group, owner = "accounts-admin" ):	
+	assert type_of( group ) == None
 	assert type_of( owner ) != None
 
-	# Action.
 	G = Group( group, owner )
 	groups[ group ] = G
 
-def add_to_group( name, group, admin_user, admin_token ):
+def add_to_group( admin_user, admin_token, name, group ):
 	assert is_group( group )
-	assert is_user( admin_user )
 
-	assert validate_token( admin_user, admin_token )
-	assert is_owner( admin_user, group ) or is_member( admin_user, "accounts-admin" )
+	@restricted([ "accounts-admin", groups[group].owner ])
+	def dangerous_code():
+		assert type_of( name ) != None
 
-	assert type_of( name ) != None
+		if type_of( name ) == 'user':
+			groups[ group ].immediate_members.add( name )
+		elif type_of( name ) == 'group':
+			groups[ group ].subgroups.add( name )
 
-	if type_of( name ) == 'user':
-		groups[ group ].immediate_members.add( name )
-	elif type_of( name ) == 'group':
-		groups[ group ].subgroups.add( name )
+	dangerous_code( admin_user, admin_token )
 
-def remove_from_group( name, group, admin_user, admin_token ):
+def remove_from_group( admin_user, admin_token, name, group ):
 	assert is_group( group )
-	assert is_user( admin_user )
+	
+	@restricted([ "accounts-admin", groups[group].owner ])
+	def dangerous_code():
+		assert type_of( name ) != None
 
-	assert validate_token( admin_user, admin_token )
-	assert is_owner( admin_user, group ) or is_member( admin_user, "accounts-admin" )
+		if type_of( name ) == 'user':
+			groups[ group ].immediate_members.remove( name )
+		elif type_of( name ) == 'group':
+			groups[ group ].subgroups.remove( name )
 
-	assert type_of( name ) != None
 
-	if type_of( name ) == 'user':
-		groups[ group ].immediate_members.remove( name )
-	elif type_of( name ) == 'group':
-		groups[ group ].subgroups.remove( name )
 
-def transfer_group_ownership( group, new_owner, admin_user, admin_token ):
+def transfer_group_ownership( admin_user, admin_token, group, new_owner ):
 	assert is_group( group )
-	assert is_user(  admin_user )
+	
+	@restricted([ "accounts-admin", groups[group].owner ])
+	def dangerous_code():
+		assert type_of( new_owner ) != None
+		groups[ group ].owner = new_owner
 
-	assert validate_token( admin_user, admin_token )
-	assert is_owner( admin_user, group ) or is_member( admin_user, "accounts-admin" )
+	dangerous_code( admin_user, admin_token )
 
-	assert type_of( new_owner ) != None
-	groups[ group ].owner = new_owner
 	
 
 ### __main__
@@ -221,17 +267,30 @@ if __name__ == '__main__':
 
 	admin_token = authenticate( 'admin', 'password' )
 
-	create_user( 'woursler', 'password2', 'admin', admin_token )
-	create_user( 'adat', 'password3', 'admin', admin_token )
-	create_user( 'larsj', 'password4', 'admin', admin_token )
+	create_user( 'admin', admin_token, 'woursler', 'password2' )
+	create_user( 'admin', admin_token, 'adat', 'password3' )
+	create_user( 'admin', admin_token, 'larsj', 'password4' )
+	create_user( 'admin', admin_token, 'timwilz', 'password6' )
+	create_user( 'admin', admin_token, 'omalley1', 'password7' )
 
 	larsj_token = authenticate( 'larsj', 'password4' )
+	timwilz_token = authenticate( 'timwilz', 'password6' )
 
-	create_group( 'simmons-tech', 'admin', admin_token, 'larsj' )
+	create_group( 'admin', admin_token, 'simmons-tech', 'larsj' )
 
-	add_to_group( 'woursler', 'simmons-tech', 'larsj', larsj_token )
-	add_to_group( 'adat', 'simmons-tech', 'admin', admin_token )
-	add_to_group( 'larsj', 'simmons-tech', 'larsj', larsj_token )
+	@restricted( "simmons-tech" )
+	def super_secret( s ):
+		print "Welcome to Simmons Tech. Your string is: " + s
+
+	add_to_group( 'larsj', larsj_token, 'woursler', 'simmons-tech' )
+	add_to_group( 'admin', admin_token, 'adat', 'simmons-tech' )
+	add_to_group( 'larsj', larsj_token, 'larsj', 'simmons-tech' )
+
+	transfer_group_ownership( 'larsj', larsj_token, 'simmons-tech', 'adat' )
+
+	adat_token = authenticate( 'adat', 'password3' )
+
+	add_to_group( 'adat', adat_token, 'omalley1', 'simmons-tech' )
 
 	print users.keys()
 	print groups.keys()
@@ -240,3 +299,8 @@ if __name__ == '__main__':
 	print groups[ 'simmons-tech' ].owner
 
 	print HMAC( "The quick brown fox jumps over the lazy dog", "key" )
+
+	print "\nTest @restricted.\n"
+	super_secret( 'larsj', larsj_token, "TESTING TESTING" )
+	print ""
+	super_secret( 'timwilz', timwilz_token, "Psh. Simmons Tech." )
