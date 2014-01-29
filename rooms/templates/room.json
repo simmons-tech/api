@@ -1,0 +1,7 @@
+&#123;
+"roomnum": "{{ room.num }}",
+"grt": "{{ room.grt }}",
+"capacity": "{{ room.capacity }}",
+"sq_ft": "{{ room.size }}",
+"side": "{{ room.view }}"
+&#125;
