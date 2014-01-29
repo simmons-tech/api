@@ -58,29 +58,6 @@ def is_owner( user, group ):
 		return groups[ group ].owner == user
 	return is_member( user, group )
 
-## HMAC ##
-#
-# MD5-HMAC code from Wikipedia.
-# TODO: Audit properly.
-# TODO: Move to own file.
-#
-
-from hashlib import md5
-
-def HMAC( message, key ):
-
-	trans_5C = ''.join( chr( x ^ 0x5c ) for x in xrange(256) )
-	trans_36 = ''.join( chr( x ^ 0x36 ) for x in xrange(256) )
-	blocksize = md5().block_size
-		
-	# Standardize the key...
-	if len( key ) > blocksize:
-		key = md5(key).digest()
-	key += chr( 0 ) * ( blocksize - len( key ) )
-	o_key_pad = key.translate( trans_5C )
-	i_key_pad = key.translate( trans_36 )
-	return md5( o_key_pad + md5( i_key_pad + message).digest() ).hexdigest()
-
 ## Temp Token Generation
 #
 #
@@ -107,6 +84,7 @@ def invalidate_token( user, token ):
 	
 	users[ user ].token = None
 
+from HMAC import HMAC
 def validate_message( message, hmac, user ):
 	assert is_user( user )
 	assert users[ user ].token != None
@@ -170,7 +148,7 @@ def subgroups( group ):
 # TL;DR, this decorator is for convenience and does not provide security against an
 # adversary with code execution over your relevant environment.
 #
-# TODO: Make a variant for HMAC'd messages?
+# TODO: Make a variant for HMAC'd messages.
 #
 ###
 
@@ -198,12 +176,47 @@ def restricted( names, require_all = False ):
 			
 			if require_all:
 				assert False not in approval
-			else:
-				assert True in approval
+			assert True in approval
 
 			f( *args, **kwargs )
 		return decorated_f
 	return restricted_decorator
+
+# TODO: JSON Packaging and Standardization. Python based HMAC creation.
+
+def authenticate_message( names, require_all = False ):
+	# Support passing a single name.
+	if isinstance( names, basestring ):
+		names = [ names ]
+	def authenticate_message_decorator( f ):
+		def decorated_f( authenticated_message ):
+			# Unpackage the message.
+			user    = authenticated_message[ 'user' ]
+			hmac    = authenticated_message[ 'hmac' ]
+			message = authenticated_message[ 'message' ]
+
+			# Pre-permissions sanity check.
+			assert is_user( user )
+			for name in names:
+				assert type_of( name ) != None
+			
+			# Check the message if from the user.
+			assert validate_message( message, hmac, user )
+			# For each name, check membership.
+			approval = set()
+			for name in names:
+				if type_of( name ) == 'user':
+					approval.add( name == user )
+				if type_of( name ) == 'group':
+					approval.add( is_member( user, name ) )
+
+			if require_all:
+				assert False not in approval
+			assert True in approval
+			
+			f( message )
+		return decorated_f
+	return restricted_decorator	
 
 ### Account management
 
