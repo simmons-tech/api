@@ -1,12 +1,19 @@
 import sys
 import os
 
+# TODO: Assess need for each import.
+from sqlalchemy import create_engine
+from sqlalchemy import Column, Integer, String, Date, Boolean
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import OperationalError
+
 
 # Load the sdb password from file.
 password = None
 
 try:
-	# Construct a reliable location, should be reasonably cross platform.
+	# Construct a reliable location of the directory containing password file, should be reasonably cross platform.
 	__location__ = os.path.realpath( os.path.join( os.getcwd(), os.path.dirname( __file__ ) ) )
 	with open( os.path.join( __location__, 'password' ), 'r' ) as password_file:
 		password = password_file.read().strip()
@@ -21,6 +28,48 @@ except AssertionError:
 	sys.stderr.write('sdp.py: Empty password detected. Make sure the password is in {{apis_dir}}/utils/sdb/password.\n')
 	exit()
 
-print 'Password is "' + password +'"'
-
 db = create_engine('postgresql://dashboard:'+password+'@simmons.mit.edu/sdb')
+
+# TODO: Check the password is correct.
+
+print password
+
+def sdb_session():
+	Session = sessionmaker(bind=db)
+	session = Session()
+	return session
+
+ResidentBase = declarative_base()
+ActiveUsernamesBase = declarative_base()
+
+class Resident(ResidentBase):
+	__tablename__ = 'directory'
+	username = Column(String, primary_key = True)
+
+	firstname = Column(String)
+	lastname = Column(String)
+	room = Column(String)
+	phone = Column(String)
+	year = Column(Integer)
+	cellphone = Column(String)
+	homepage = Column(String)
+	#home_city = Column(String)
+	#home_state = Column(String)
+	home_country = Column(String)
+	#quote = Column(String)
+	favorite_category = Column(String)
+	favorite_value = Column(String)
+	private = Column(Boolean)
+	type = Column(String)
+	email = Column(String)
+	lounge = Column(String)
+	title = Column(String)
+	loungevalue = Column(Integer)
+	showreminders = Column(Boolean)
+	guest_list_expiration = Column(String)
+
+class ActiveUsernames( ActiveUsernamesBase ):
+	__tablename__ = 'sds_users_all'
+
+	username = Column( String, primary_key = True )
+	active = Column( Boolean )

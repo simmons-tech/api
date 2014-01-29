@@ -64,7 +64,7 @@ def HMAC( message, key ):
 import string
 import random
 def generate_new_token():
-	return ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(10))
+	return ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(16))
 
 ### Authentication
 
@@ -137,12 +137,22 @@ def create_group( group, admin_user, admin_token, owner = "accounts-admin" ):
 	assert group not in groups
 	G = Group( group, owner )
 	groups[ group ] = G
+
+def add_to_group( name, group, admin_user, admin_token ):
+	pass
+
+def remove_from_group( name, group, admin_user, admin_token ):
+	pass
+
+def transfer_group_ownership( group, new_owner, admin_user, admin_token ):
+	pass
 	
 
 ### __main__
 if __name__ == '__main__':
 
 	admin_token = authenticate( 'admin', 'password' )
+	print admin_token
 	create_user( 'woursler', 'password2', 'admin', admin_token )
 
 	print users

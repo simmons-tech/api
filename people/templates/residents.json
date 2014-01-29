@@ -1,5 +1,5 @@
 [
 {% for resident in residents %}
-"{{ resident.username }}",
+"{{ resident }}",
 {% endfor %}
 ]
