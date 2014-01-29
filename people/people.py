@@ -15,8 +15,6 @@ app = Flask(__name__)
 # TODO: fix DoS vulnerabilties.
 
 def get_people():
-	print "CALL: get_people"
-
 	session = sdb_session()
 
 	# Make a full list of people of interest...
@@ -40,15 +38,12 @@ def get_people():
 	return people
 
 def get_person( username ):
-	print "CALL: get_person"
 	people = get_people()
 	for person in people:
 		if person['kerberos'] == username:
 			return person
 
 def get_active_residents():
-	print "CALL: get_active_residents"
-
 	session = sdb_session()
 
 	people = get_people()
@@ -73,12 +68,10 @@ def get_active_residents():
 
 @app.route('/')
 def serve_active_residents():
-	print "CALL: serve_active_residents"
 	return render_template('residents.json', residents = get_active_residents() )
 
 @app.route('/<username>/')
 def serve_person( username ):
-	print "CALL: serve_person"
 	return render_template('resident.json', resident = get_person( username ) )
 
 # END API #################################################

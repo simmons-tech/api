@@ -32,8 +32,6 @@ db = create_engine('postgresql://dashboard:'+password+'@simmons.mit.edu/sdb')
 
 # TODO: Check the password is correct.
 
-print password
-
 def sdb_session():
 	Session = sessionmaker(bind=db)
 	session = Session()
@@ -41,6 +39,7 @@ def sdb_session():
 
 ResidentBase = declarative_base()
 ActiveUsernamesBase = declarative_base()
+PackageBase = declarative_base()
 
 class Resident(ResidentBase):
 	__tablename__ = 'directory'
@@ -73,3 +72,15 @@ class ActiveUsernames( ActiveUsernamesBase ):
 
 	username = Column( String, primary_key = True )
 	active = Column( Boolean )
+
+class Package(PackageBase):
+	__tablename__ = 'packages'
+
+	packageid         = Column(Integer, primary_key=True)
+	recipient         = Column(String)
+	bin                 = Column(String)
+	checkin         = Column(Date)
+	checkin_by         = Column(String)
+	pickup                 = Column(Date)
+	pickup_by         = Column(String)
+	perishable         = Column(Boolean)

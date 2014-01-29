@@ -1,51 +1,22 @@
 #!/usr/bin/python
 
-from flask import Flask, render_template
+# Add the Simmons DB utils to the PYTHONPATH (temporary).
+import sys, os
+sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../utils') ) )
+
+from sdb import Resident, sdb_session
+
+# Setup flask basics.
+from flask import Flask, render_template, make_response
 app = Flask(__name__)
 
 # BEGIN HELPERS ###########################################
 
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Date, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-password = 'PASSWORD_HERE'
+# TODO: fix DoS vulnerabilties.
+# TODO: Used in people.py as well, perhaps abstract to sdb?
 
 def get_people():
-	print "CALL: get_people"
-	db = create_engine('postgresql://dashboard:'+password+'@simmons.mit.edu/sdb')
-
-	Base = declarative_base()
-
-	class Resident(Base):
-		__tablename__ = 'directory'
-		username = Column(String, primary_key = True)
-
-		firstname = Column(String)
-		lastname = Column(String)
-		room = Column(String)
-		phone = Column(String)
-		year = Column(Integer)
-		cellphone = Column(String)
-		homepage = Column(String)
-		#home_city = Column(String)
-		#home_state = Column(String)
-		home_country = Column(String)
-		#quote = Column(String)
-		favorite_category = Column(String)
-		favorite_value = Column(String)
-		private = Column(Boolean)
-		type = Column(String)
-		email = Column(String)
-		lounge = Column(String)
-		title = Column(String)
-		loungevalue = Column(Integer)
-		showreminders = Column(Boolean)
-		guest_list_expiration = Column(String)
-
-	Session = sessionmaker(bind=db)
-	session = Session()
+	session = sdb_session()
 
 	# Make a full list of people of interest...
 	people = []
@@ -68,55 +39,25 @@ def get_people():
 	return people
 
 def get_person( username ):
-	print "CALL: get_person"
 	people = get_people()
 	for person in people:
 		if person['kerberos'] == username:
-			return HttpResponse(json.dumps({'person':person}), mimetype="application/json")
-
-def get_active_residents():
-	print "CALL: get_active_residents"
-
-	db = create_engine('postgresql://dashboard:'+password+'@simmons.mit.edu/sdb')
-
-	Base = declarative_base()
-
-	class ActiveUsernames( Base ):
-		__tablename__ = 'sds_users_all'
-	
-		username = Column( String, primary_key = True )
-		active = Column( Boolean )
-
-	Session = sessionmaker(bind=db)
-	session = Session()
-
-	people = get_people()
-	
-	# Figure out which users are active...
-	active = {}
-	for username in session.query(ActiveUsernames):
-		active[ username.username ] = username.active
-
-	usernames = []
-	for person in people:
-		if active[ person['kerberos'] ]:
-			usernames.append( person['kerberos'] )
-
-	return HttpResponse(json.dumps({'usernames':usernames}), mimetype="application/json")
+			return person
 
 # END HELPERS #############################################
 
 # BEGIN API ###############################################
 
-@app.route('/')
-def serve_active_residents():
-	print "CALL: serve_active_residents"
-	return render_template('residents.json', residents = get_active_residents() )
-
 @app.route('/<username>/')
-def serve_person( username ):
-	print "CALL: serve_person"
-	return render_template('review.json', resident = get_person( username ) )
+def serve_profile( username ):
+	return render_template('resident.json', resident = get_person( username ) )
+
+@app.route('/<username>/picture.png')
+def serve_profile_picture( username ):
+	# For now, serve the same default picture for everyone.
+	resp = make_response( open( "./static/default.png" ).read() )
+	resp.content_type = "image/png"
+	return resp
 
 # END API #################################################
 
