@@ -1,0 +1,7 @@
+&#123;
+"firstname": "{{ resident.firstname }}",
+"lastname": "{{ resident.lastname }}",
+"kerberos": "{{ resident.username }}",
+"year": "{{ resident.year }}",
+"email": "{{ resident.email }}"
+&#125;
