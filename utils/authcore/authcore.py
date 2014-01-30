@@ -15,8 +15,9 @@ import os
 
 sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../') ) )
 from db import *
+from HMAC import *
 
-#TODO: Properly consider race conditions and efficiency. Perhaps a global db lock is in order?
+#TODO: Properly consider race conditions and efficiency. Perhaps a global db lock or similar is in order?
 
 # TODO: Make work.
 #def users():
@@ -85,6 +86,7 @@ def authenticate( username, password ):
 	else:
 		return None
 
+# TODO: Make this work.
 def invalidate_token( username, token ):
 	assert is_user( username )
 	assert users[ username ].token != None
@@ -92,12 +94,12 @@ def invalidate_token( username, token ):
 	
 	users[ user ].token = None
 
-from HMAC import HMAC
-def validate_message( message, hmac, user ):
-	assert is_user( user )
-	assert users[ user ].token != None
+def validate_message( message, hmac, username ):
+	assert is_user( username )
+	user = get_user( username )
+	assert user.token != None
 	
-	return hmac == HMAC( message, users[ user ].token )
+	return hmac == HMAC( message, user.token )
 
 def validate_token( username, token ):
 	assert is_user( username )
@@ -227,9 +229,9 @@ def authenticate_message( names, require_all = False ):
 				assert False not in approval
 			assert True in approval
 			
-			f( message )
+			f( json.loads( message ) )
 		return decorated_f
-	return restricted_decorator	
+	return authenticate_message_decorator	
 
 ### Account management
 
@@ -343,6 +345,10 @@ if __name__ == '__main__':
 	def super_secret( s ):
 		print "Welcome to Simmons Tech. Your string is: " + s
 
+	@authenticate_message( "simmons-tech" )
+	def authd_echo( message ):
+		print message
+
 	add_to_group( 'larsj', larsj_token, 'woursler', 'simmons-tech' )
 	add_to_group( 'admin', admin_token, 'adat', 'simmons-tech' )
 	add_to_group( 'larsj', larsj_token, 'larsj', 'simmons-tech' )
@@ -354,15 +360,17 @@ if __name__ == '__main__':
 	add_to_group( 'adat', adat_token, 'omalley1', 'simmons-tech' )
 
 	# TODO: Make work.
-	#print users.keys()
-	#print groups.keys()
+	#print users()
+	#print groups()
 
 	print get_group( 'simmons-tech' ).immediate_members
 	print get_group( 'simmons-tech' ).owner
 
-	print HMAC( "The quick brown fox jumps over the lazy dog", "key" )
+	print hmac_message( "The quick brown fox jumps over the lazy dog", "someuser", "key" )
 
 	print "\nTest @restricted.\n"
 	super_secret( 'larsj', larsj_token, "TESTING TESTING" )
+	print ""
+	authd_echo( hmac_message( ["Testing","A","List"], 'adat', adat_token ) )
 	print ""
 	super_secret( 'timwilz', timwilz_token, "Psh. Simmons Tech." )
