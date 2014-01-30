@@ -6,7 +6,9 @@
 # https://github.com/simmons-tech/wiki/wiki/Authentication-API
 
 ## TEMP INIT
-#
+
+import sys, os
+sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../') ) )
 
 class User:
 	def __init__( self, username, password):
@@ -182,8 +184,9 @@ def restricted( names, require_all = False ):
 		return decorated_f
 	return restricted_decorator
 
-# TODO: JSON Packaging and Standardization. Python based HMAC creation.
-
+# TODO: Comprehensive testing across JSON formats.
+# TODO: Documentation.
+# TODO: Rename to something sensible.
 def authenticate_message( names, require_all = False ):
 	# Support passing a single name.
 	if isinstance( names, basestring ):
