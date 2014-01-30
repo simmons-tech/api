@@ -19,10 +19,10 @@ def HMAC( message, key ):
 	return md5( o_key_pad + md5( i_key_pad + message ).digest() ).hexdigest()
 
 # Need to carefully work on this and then make a JS equivalent.
-def hmac_message( message, user, key ):
+def hmac_message( message, username, key ):
 	message = json.dumps( message )
 	return {
 		'message': message,
-		'user':user,
+		'username':username,
 		'hmac': HMAC( message, key ),
 	}

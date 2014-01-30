@@ -5,7 +5,7 @@
 # This file seeks to implement the back-end of the RPC described at
 # https://github.com/simmons-tech/wiki/wiki/Authentication-API
 
-## TEMP INIT
+# System imports
 import base64
 import pbkdf2
 import hashlib
@@ -13,9 +13,13 @@ import json
 import sys
 import os
 
+# Util imports
 sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../') ) )
 from db import *
+
+# Authcore imports
 from HMAC import *
+from authcore_exceptions import *
 
 #TODO: Properly consider race conditions and efficiency. Perhaps a global db lock or similar is in order?
 
@@ -26,6 +30,7 @@ from HMAC import *
 #def groups():
 #	return groups.keys()
 
+# TODO: Cache results short term?
 def is_user( name ):
 	db = init('user')
 	user = db.query(User).get( name )
@@ -34,11 +39,13 @@ def is_user( name ):
 	return False
 
 def get_user( username ):
-	assert is_user( username )
+	if not is_user( username ):
+		raise NonexistentUserError( username )
 	db = init('user')
 	user = db.query(User).get( username )
 	return user
 
+# TODO: Cache results short term?
 def is_group( name ):
 	db = init('group')
 	group = db.query(Group).get( name )
@@ -47,7 +54,8 @@ def is_group( name ):
 	return False
 
 def get_group( groupname ):
-	assert is_group( groupname )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
 	db = init('group')
 	group = db.query(Group).get( groupname )
 	return group
@@ -59,16 +67,20 @@ def type_of( name ):
 		return 'group'
 	return None
 
-def is_owner( user, group ):
-	assert is_group( group )
-	assert is_user( user )
+#TODO: Make work.
+def is_owner( username, groupname ):
+	if not is_user( username ):
+		raise NonexistentUserError( username )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
+
 	if type_of( get_group( groupname ).owner ) == 'user':
 		return get_group( groupname ).owner == user
-	return is_member( user, group )
+	return is_member( username, groupname )
 
 ### Private Helpers
 
-def generate_new_token(db, person):
+def generate_new_token(db, person): # TODO: Should this function really commit to the db? Move commit to authenticate?
 	hashinput = "%s%s" % (person.passhash, base64.b64encode(os.urandom(128)))
 	person.token = hashlib.md5(hashinput).hexdigest()
 	db.commit()
@@ -78,62 +90,84 @@ def generate_new_token(db, person):
 
 def authenticate( username, password ):
 	db = init('user')
-	person = db.query(User).get( username )
-	if not person: # TODO: Throw Exception?
-		return None
-	if person.passhash == pbkdf2.PBKDF2(password, person.salt).hexread(32):
-		return generate_new_token(db, person)
-	else:
-		return None
+	user = db.query(User).get( username )
+	if not user:
+		raise NonexistentUserError( username )
+	if user.passhash == pbkdf2.PBKDF2(password, user.salt).hexread(32):
+		return generate_new_token(db, user)
+	raise AuthenticationError( username )
+
+# If the message is valid, this will run without issue
+# Otherwise, an AuthenticationError will be raised
+# unless the message 
+def validate_message( message, hmac, username ):
+	if not is_user( username ):
+		raise NonexistentUserError( username )
+
+	user = get_user( username )
+
+	if user.token == None:
+		raise AuthenticationError( username )
+
+	if hmac == HMAC( message, user.token ):
+		return
+	raise AuthenticationError( username )
+
+# If the token is valid, this will run without issue.
+# Otherwise, an AuthenticationError will be raised.
+def validate_token( username, token ):
+	if not is_user( username ):
+		raise NonexistentUserError( username )
+
+	user = get_user( username )
+
+	if user.token == None:
+		raise AuthenticationError( username )
+
+	if user.token == token:
+		return
+	raise AuthenticationError( username )
 
 # TODO: Make this work.
 def invalidate_token( username, token ):
-	assert is_user( username )
-	assert users[ username ].token != None
-	assert users[ username ].token == token
-	
-	users[ user ].token = None
-
-def validate_message( message, hmac, username ):
-	assert is_user( username )
-	user = get_user( username )
-	assert user.token != None
-	
-	return hmac == HMAC( message, user.token )
-
-def validate_token( username, token ):
-	assert is_user( username )
+	validate_token( username, token ) # Ensure the user is logged in.
 
 	db = init('user')
 	user = db.query(User).get( username )
-	if not user:
-		return False
-	return user.token == token
+	user.token = None
+	db.commit()
 
 ### Membership
 
 # TODO: Protect against loops? Maybe do that during registration.
 
-def is_member( user, group ):
-	assert is_user( user )
-	assert is_group( group )
+def is_member( username, groupname ):
+	if not is_user( username ):
+		raise NonexistentUserError( username )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
 	# Inefficient, but simple.
-	return user in members( group )
+	return username in members( groupname )
 
 def members( groupname ):
-	assert is_group( groupname )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
 	m = set()
 	m = m | set( json.loads( get_group( groupname ).immediate_members ) )
 	for subgroup in json.loads( get_group( groupname ).subgroups ):
 		m = m | members( subgroup )
 	return m
 
+# TODO: Make this work.
 def immediate_members( group ):
-	assert is_group( group )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
 	return get_group( groupname ).immediate_members
 
+# TODO: Make this work.
 def subgroups( group ):
-	assert is_group( group )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
 	return get_group( groupname ).subgroups
 
 ### restricted decorator ###
@@ -171,26 +205,29 @@ def restricted( names, require_all = False ):
 	if isinstance( names, basestring ):
 		names = [ names ]
 	def restricted_decorator( f ):
-		def decorated_f( user, token, *args, **kwargs ):
+		def decorated_f( username, token, *args, **kwargs ):
 			# Pre-permissions sanity check.
-			assert is_user( user )
+			if not is_user( username ):
+				raise NonexistentUserError( username )
 			for name in names:
-				assert type_of( name ) != None
+				if type_of( name ) == None:
+					raise NonexistentNameError( name )
 
 			# Permissions Check.
 			# Validate that the user requesting access is who they say they are.
-			assert validate_token( user, token )
+			validate_token( username, token )
 			# For each name, check membership.
 			approval = set()
 			for name in names:
 				if type_of( name ) == 'user':
-					approval.add( name == user )
+					approval.add( name == username )
 				if type_of( name ) == 'group':
-					approval.add( is_member( user, name ) )
+					approval.add( is_member( username, name ) )
 			
-			if require_all:
-				assert False not in approval
-			assert True in approval
+			if require_all and ( False in approval ):
+				raise AuthenticationError( username )
+			if True not in approval:
+				raise AuthenticationError( username )
 
 			f( *args, **kwargs )
 		return decorated_f
@@ -206,28 +243,31 @@ def authenticate_message( names, require_all = False ):
 	def authenticate_message_decorator( f ):
 		def decorated_f( authenticated_message ):
 			# Unpackage the message.
-			user    = authenticated_message[ 'user' ]
+			username    = authenticated_message[ 'username' ]
 			hmac    = authenticated_message[ 'hmac' ]
 			message = authenticated_message[ 'message' ]
 
 			# Pre-permissions sanity check.
-			assert is_user( user )
+			if not is_user( username ):
+				raise NonexistentUserError( username )
 			for name in names:
-				assert type_of( name ) != None
+				if type_of( name ) == None:
+					raise NonexistentNameError( name )
 			
-			# Check the message if from the user.
-			assert validate_message( message, hmac, user )
+			# Ensure the message is from the user.
+			validate_message( message, hmac, username )
 			# For each name, check membership.
 			approval = set()
 			for name in names:
 				if type_of( name ) == 'user':
-					approval.add( name == user )
+					approval.add( name == username )
 				if type_of( name ) == 'group':
-					approval.add( is_member( user, name ) )
+					approval.add( is_member( username, name ) )
 
-			if require_all:
-				assert False not in approval
-			assert True in approval
+			if require_all and ( False in approval ):
+				raise AuthenticationError( username )
+			if True not in approval:
+				raise AuthenticationError( username )
 			
 			f( json.loads( message ) )
 		return decorated_f
@@ -237,7 +277,8 @@ def authenticate_message( names, require_all = False ):
 
 @restricted( "accounts-admin" )
 def create_user( username, password ):
-	assert type_of( username ) == None
+	if type_of( username ) != None:
+		raise NameAllocatedError( username )
 	db = init('user')
 	person = db.query(User).get( username )
 	if person:
@@ -251,8 +292,10 @@ def create_user( username, password ):
 
 @restricted( "accounts-admin" )
 def create_group( groupname, owner = "accounts-admin" ):	
-	assert type_of( groupname ) == None
-	assert type_of( owner ) != None
+	if type_of( groupname ) != None:
+		raise NameAllocatedError( groupname )
+	if type_of( owner ) == None:
+		raise NonexistentNameError( name )
 
 	db = init('group')
 	group = db.query(Group).get( groupname )
@@ -267,11 +310,13 @@ def create_group( groupname, owner = "accounts-admin" ):
 	db.commit()
 
 def add_to_group( admin_user, admin_token, name, groupname ):
-	assert is_group( groupname )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
 
 	@restricted([ "accounts-admin", get_group( groupname ).owner ])
 	def dangerous_code():
-		assert type_of( name ) != None
+		if type_of( name ) == None:
+			raise NonexistentNameError( name )
 
 		db = init('group')
 		group = db.query(Group).get( groupname )
@@ -289,11 +334,13 @@ def add_to_group( admin_user, admin_token, name, groupname ):
 	dangerous_code( admin_user, admin_token )
 
 def remove_from_group( admin_user, admin_token, name, groupname ):
-	assert is_group( groupname )
+	if not is_group( groupname ):
+		raise NonexistentGroupError( groupname )
 	
 	@restricted([ "accounts-admin", get_group( groupname ).owner ])
 	def dangerous_code():
-		assert type_of( name ) != None
+		if type_of( name ) == None:
+			raise NonexistentNameError( name )
 
 		db = init('group')
 		group = db.query(Group).get( groupname )
@@ -330,16 +377,39 @@ if __name__ == '__main__':
 
 	admin_token = authenticate( 'admin', 'password' )
 
-	create_user( 'admin', admin_token, 'woursler', 'password2' )
-	create_user( 'admin', admin_token, 'adat', 'password3' )
-	create_user( 'admin', admin_token, 'larsj', 'password4' )
-	create_user( 'admin', admin_token, 'timwilz', 'password6' )
-	create_user( 'admin', admin_token, 'omalley1', 'password7' )
+	if not is_user( 'woursler'):
+
+		create_user( 'admin', admin_token, 'woursler', 'password2' )
+		create_user( 'admin', admin_token, 'adat', 'password3' )
+		create_user( 'admin', admin_token, 'larsj', 'password4' )
+		create_user( 'admin', admin_token, 'timwilz', 'password6' )
+		create_user( 'admin', admin_token, 'omalley1', 'password7' )
+
+		larsj_token = authenticate( 'larsj', 'password4' )
+		timwilz_token = authenticate( 'timwilz', 'password6' )
+
+		create_group( 'admin', admin_token, 'simmons-tech', 'larsj' )
+
+		add_to_group( 'larsj', larsj_token, 'woursler', 'simmons-tech' )
+		add_to_group( 'admin', admin_token, 'adat', 'simmons-tech' )
+		add_to_group( 'larsj', larsj_token, 'larsj', 'simmons-tech' )
+
+		transfer_group_ownership( 'larsj', larsj_token, 'simmons-tech', 'adat' )
+
+		adat_token = authenticate( 'adat', 'password3' )
+
+		add_to_group( 'adat', adat_token, 'omalley1', 'simmons-tech' )
 
 	larsj_token = authenticate( 'larsj', 'password4' )
 	timwilz_token = authenticate( 'timwilz', 'password6' )
+	adat_token = authenticate( 'adat', 'password3' )
 
-	create_group( 'admin', admin_token, 'simmons-tech', 'larsj' )
+	# TODO: Make work.
+	#print users()
+	#print groups()
+
+	print get_group( 'simmons-tech' ).immediate_members
+	print get_group( 'simmons-tech' ).owner
 
 	@restricted( "simmons-tech" )
 	def super_secret( s ):
@@ -348,23 +418,6 @@ if __name__ == '__main__':
 	@authenticate_message( "simmons-tech" )
 	def authd_echo( message ):
 		print message
-
-	add_to_group( 'larsj', larsj_token, 'woursler', 'simmons-tech' )
-	add_to_group( 'admin', admin_token, 'adat', 'simmons-tech' )
-	add_to_group( 'larsj', larsj_token, 'larsj', 'simmons-tech' )
-
-	transfer_group_ownership( 'larsj', larsj_token, 'simmons-tech', 'adat' )
-
-	adat_token = authenticate( 'adat', 'password3' )
-
-	add_to_group( 'adat', adat_token, 'omalley1', 'simmons-tech' )
-
-	# TODO: Make work.
-	#print users()
-	#print groups()
-
-	print get_group( 'simmons-tech' ).immediate_members
-	print get_group( 'simmons-tech' ).owner
 
 	print hmac_message( "The quick brown fox jumps over the lazy dog", "someuser", "key" )
 
