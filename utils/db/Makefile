@@ -11,7 +11,7 @@ init-db:
 	python db.py init group
 
 populate-db:
-	@echo "Nothing specified to populate databases."
+	python authcore_setup.py
 
 # Remove all runtime based information.
 # Should return the repo to a "source-only" state.

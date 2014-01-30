@@ -6,41 +6,19 @@
 # https://github.com/simmons-tech/wiki/wiki/Authentication-API
 
 ## TEMP INIT
+import base64
+import pbkdf2
+import hashlib
+import json
+import sys
+import os
 
-import sys, os
 sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../') ) )
+from db import *
 
-class User:
-	def __init__( self, username, password):
-		self.username = username
-		self.password = password
-		self.token = None
+#TODO: Properly consider race conditions and efficiency. Perhaps a global db lock is in order?
 
-class Group:
-	def __init__( self, groupname, owner ):
-		self.groupname = groupname
-		self.owner = owner
-		self.immediate_members = set()
-		self.subgroups = set()
-
-users = {
-	'admin': User( 'admin', 'password' )
-}
-
-accounts_admin = Group( 'accounts-admin', 'accounts-admin' )
-accounts_admin.immediate_members = set([ 'admin' ])
-
-groups = {
-	'accounts-admin': accounts_admin
-}
-
-def type_of( name ):
-	if name in users:
-		return 'user'
-	if name in groups:
-		return 'group'
-	return None
-
+# TODO: Make work.
 #def users():
 #	return users.keys()
 #
@@ -48,41 +26,69 @@ def type_of( name ):
 #	return groups.keys()
 
 def is_user( name ):
-	return type_of( name ) == 'user'
+	db = init('user')
+	user = db.query(User).get( name )
+	if user:
+		return True
+	return False
+
+def get_user( username ):
+	assert is_user( username )
+	db = init('user')
+	user = db.query(User).get( username )
+	return user
 
 def is_group( name ):
-	return type_of( name ) == 'group'
+	db = init('group')
+	group = db.query(Group).get( name )
+	if group:
+		return True
+	return False
+
+def get_group( groupname ):
+	assert is_group( groupname )
+	db = init('group')
+	group = db.query(Group).get( groupname )
+	return group
+
+def type_of( name ):
+	if is_user( name ):
+		return 'user'
+	if is_group( name ):
+		return 'group'
+	return None
 
 def is_owner( user, group ):
 	assert is_group( group )
 	assert is_user( user )
-	if type_of( groups[ group ].owner ) == 'user':
-		return groups[ group ].owner == user
+	if type_of( get_group( groupname ).owner ) == 'user':
+		return get_group( groupname ).owner == user
 	return is_member( user, group )
 
-## Temp Token Generation
-#
-#
+### Private Helpers
 
-import string
-import random
-def generate_new_token():
-	return ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(16))
+def generate_new_token(db, person):
+	hashinput = "%s%s" % (person.passhash, base64.b64encode(os.urandom(128)))
+	person.token = hashlib.md5(hashinput).hexdigest()
+	db.commit()
+	return person.token
 
 ### Authentication
 
-def authenticate( user, password ):
-	assert is_user( user )
-	assert users[user].password == password
+def authenticate( username, password ):
+	db = init('user')
+	person = db.query(User).get( username )
+	if not person: # TODO: Throw Exception?
+		return None
+	if person.passhash == pbkdf2.PBKDF2(password, person.salt).hexread(32):
+		return generate_new_token(db, person)
+	else:
+		return None
 
-	token = generate_new_token()
-	users[user].token = token
-	return token
-
-def invalidate_token( user, token ):
-	assert is_user( user )
-	assert users[ user ].token != None
-	assert users[ user ].token == token
+def invalidate_token( username, token ):
+	assert is_user( username )
+	assert users[ username ].token != None
+	assert users[ username ].token == token
 	
 	users[ user ].token = None
 
@@ -93,10 +99,14 @@ def validate_message( message, hmac, user ):
 	
 	return hmac == HMAC( message, users[ user ].token )
 
-def validate_token( user, token ):
-	assert is_user( user )
+def validate_token( username, token ):
+	assert is_user( username )
 
-	return users[ user ].token == token
+	db = init('user')
+	user = db.query(User).get( username )
+	if not user:
+		return False
+	return user.token == token
 
 ### Membership
 
@@ -108,21 +118,21 @@ def is_member( user, group ):
 	# Inefficient, but simple.
 	return user in members( group )
 
-def members( group ):
-	assert is_group( group )
+def members( groupname ):
+	assert is_group( groupname )
 	m = set()
-	m = m | groups[ group ].immediate_members
-	for subgroup in groups[group ].subgroups:
+	m = m | set( json.loads( get_group( groupname ).immediate_members ) )
+	for subgroup in json.loads( get_group( groupname ).subgroups ):
 		m = m | members( subgroup )
 	return m
 
 def immediate_members( group ):
 	assert is_group( group )
-	return groups[ group ].immediate_members
+	return get_group( groupname ).immediate_members
 
 def subgroups( group ):
 	assert is_group( group )
-	return groups[ group ].subgroups
+	return get_group( groupname ).subgroups
 
 ### restricted decorator ###
 #
@@ -224,55 +234,90 @@ def authenticate_message( names, require_all = False ):
 ### Account management
 
 @restricted( "accounts-admin" )
-def create_user( user, password ):
-	assert type_of( user ) == None
-	
-	U = User( user, password )
-	users[ user ] = U
+def create_user( username, password ):
+	assert type_of( username ) == None
+	db = init('user')
+	person = db.query(User).get( username )
+	if person:
+		return None
+	newperson = User()
+	newperson.username = username
+	newperson.salt = base64.b64encode(os.urandom(128))
+	newperson.passhash = pbkdf2.PBKDF2(password, newperson.salt).hexread(32)
+	db.add(newperson)
+	db.commit()
 
 @restricted( "accounts-admin" )
-def create_group( group, owner = "accounts-admin" ):	
-	assert type_of( group ) == None
+def create_group( groupname, owner = "accounts-admin" ):	
+	assert type_of( groupname ) == None
 	assert type_of( owner ) != None
 
-	G = Group( group, owner )
-	groups[ group ] = G
+	db = init('group')
+	group = db.query(Group).get( groupname )
+	if group:
+		return None
+	newgroup = Group()
+	newgroup.groupname = groupname
+	newgroup.owner = owner
+	newgroup.immediate_members = json.dumps([])
+	newgroup.subgroups = json.dumps([])
+	db.add(newgroup)
+	db.commit()
 
-def add_to_group( admin_user, admin_token, name, group ):
-	assert is_group( group )
+def add_to_group( admin_user, admin_token, name, groupname ):
+	assert is_group( groupname )
 
-	@restricted([ "accounts-admin", groups[group].owner ])
+	@restricted([ "accounts-admin", get_group( groupname ).owner ])
 	def dangerous_code():
 		assert type_of( name ) != None
 
+		db = init('group')
+		group = db.query(Group).get( groupname )
+
 		if type_of( name ) == 'user':
-			groups[ group ].immediate_members.add( name )
+			immediate_members = set( json.loads( group.immediate_members ) )
+			immediate_members.add( name )
+			group.immediate_members = json.dumps( list( immediate_members ) )
 		elif type_of( name ) == 'group':
-			groups[ group ].subgroups.add( name )
+			subgroups = set( json.loads( group.subgroups ) )
+			subgroups.add( name )
+			group.subgroups = json.dumps( list( subgroups ) )
+		db.commit()
 
 	dangerous_code( admin_user, admin_token )
 
-def remove_from_group( admin_user, admin_token, name, group ):
-	assert is_group( group )
+def remove_from_group( admin_user, admin_token, name, groupname ):
+	assert is_group( groupname )
 	
-	@restricted([ "accounts-admin", groups[group].owner ])
+	@restricted([ "accounts-admin", get_group( groupname ).owner ])
 	def dangerous_code():
 		assert type_of( name ) != None
 
+		db = init('group')
+		group = db.query(Group).get( groupname )
+
 		if type_of( name ) == 'user':
-			groups[ group ].immediate_members.remove( name )
+			immediate_members = set( json.loads( group.immediate_members ) )
+			immediate_members.remove( name )
+			group.immediate_members = json.dumps( list( immediate_members ) )
 		elif type_of( name ) == 'group':
-			groups[ group ].subgroups.remove( name )
+			subgroups = set( json.loads( group.subgroups ) )
+			subgroups.remove( name )
+			group.subgroups = json.dumps( list( subgroups ) )
+		db.commit()
 
 
 
-def transfer_group_ownership( admin_user, admin_token, group, new_owner ):
-	assert is_group( group )
+def transfer_group_ownership( admin_user, admin_token, groupname, new_owner ):
+	assert is_group( groupname )
 	
-	@restricted([ "accounts-admin", groups[group].owner ])
+	@restricted([ "accounts-admin", get_group( groupname ).owner ])
 	def dangerous_code():
 		assert type_of( new_owner ) != None
-		groups[ group ].owner = new_owner
+		db = init('group')
+		group = db.query(Group).get( groupname )
+		group.owner = new_owner
+		db.commit()
 
 	dangerous_code( admin_user, admin_token )
 
@@ -308,11 +353,12 @@ if __name__ == '__main__':
 
 	add_to_group( 'adat', adat_token, 'omalley1', 'simmons-tech' )
 
-	print users.keys()
-	print groups.keys()
+	# TODO: Make work.
+	#print users.keys()
+	#print groups.keys()
 
-	print groups[ 'simmons-tech' ].immediate_members
-	print groups[ 'simmons-tech' ].owner
+	print get_group( 'simmons-tech' ).immediate_members
+	print get_group( 'simmons-tech' ).owner
 
 	print HMAC( "The quick brown fox jumps over the lazy dog", "key" )
 

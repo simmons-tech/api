@@ -11,34 +11,34 @@ UserBase = declarative_base()
 GroupBase = declarative_base()
 
 class User(UserBase):
-    __tablename__= "user"
-    username = Column(String(128), primary_key=True)
-    passhash = Column(String(128))
-    token = Column(String(128))
-    salt = Column(String(128))
+	__tablename__= "user"
+	username = Column(String(128), primary_key=True)
+	passhash = Column(String(128))
+	token = Column(String(128))
+	salt = Column(String(128))
 
 class Group(GroupBase):
-    __tablename__= "group"
-    groupname = Column(String(128), primary_key=True)
-    owner = Column(String(128))
-    token = Column(String(128))
-    salt = Column(String(128))
+	__tablename__= "group"
+	groupname = Column(String(128), primary_key=True)
+	owner = Column(String(128))
+	immediate_members = Column(String(512))
+	subgroups = Column(String(512))
 
 def dbsetup(name, base):
 	thisdir = os.path.dirname(os.path.abspath(__file__))
-	dbdir   = os.path.join(thisdir, "db", name)
+	dbdir   = os.path.join(thisdir, 'db', name)
 	if not os.path.exists(dbdir):
 		os.makedirs(dbdir)
-	dbfile  = os.path.join(dbdir, "%s.db" % name)
+	dbfile  = os.path.join(dbdir, '%s.db' % name)
 	engine  = create_engine('sqlite:///%s' % dbfile)
 	base.metadata.create_all(engine)
 	session = sessionmaker(bind=engine)
 	return session()
 
 def init( tablename ):
-	return dbsetup( tablename, globals()[tablename.title() + "Base"] )
+	return dbsetup( tablename, globals()[tablename.title() + 'Base'] )
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
 	commands = [ 'init' ]
 	tablenames = [ 'user', 'group' ]
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 	
 	import sys
 	if len(sys.argv) != 3:
-		print "Usage: %s %s %s" % (sys.argv[0], CLIformat(commands), CLIformat(tablenames))
+		print 'Usage: %s %s %s' % (sys.argv[0], CLIformat(commands), CLIformat(tablenames))
 		exit(1)
 	
 	command = sys.argv[1].strip()
@@ -62,6 +62,6 @@ if __name__ == "__main__":
 		if tablename in tablenames:
 			globals()[command](tablename)
 		else:
-			raise Exception("Unknown table: %s" % tablename)
+			raise Exception('Unknown table: %s' % tablename)
 	else:
-		raise Exception("Unknown command: %s" % command)
+		raise Exception('Unknown command: %s' % command)
