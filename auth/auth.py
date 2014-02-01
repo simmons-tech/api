@@ -10,6 +10,7 @@ import authcore
 from flask import Flask, render_template, make_response, request
 app = Flask(__name__)
 
+# TODO: Remove in production? DO NOT PRINT TOKEN FOR FUCKS SAKE.
 @app.route('/')
 def test():
 	username = request.cookies.get('username')
@@ -45,6 +46,7 @@ def logout():
 	except authcore.AuthenticationError:
 		return "Authentication Error"
 
+# TODO: Remove in production.
 @app.route('/authtest')
 def authtest():
 	username = request.cookies.get('username')
