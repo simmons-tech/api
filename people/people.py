@@ -10,8 +10,6 @@ from sdb import Resident, ActiveUsernames, sdb_session
 from flask import Flask, render_template, request
 app = Flask(__name__)
 
-# BEGIN HELPERS ###########################################
-
 # TODO: fix DoS vulnerabilties.
 
 def get_people():
@@ -62,10 +60,6 @@ def get_active_residents():
 
 	return usernames
 
-# END HELPERS #############################################
-
-# BEGIN API ###############################################
-
 @app.route('/')
 def serve_active_residents():
 	if request.args.get('q'):
@@ -79,12 +73,6 @@ def serve_person( username ):
 def serve_query( query ):
 	return "Query: " + query # TODO: serve query response...
 
-# END API #################################################
-
-# RUN FLASK APP ###########################################
-
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.
     	app.run()
-
-# END FLASK APP ###########################################

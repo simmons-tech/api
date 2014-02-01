@@ -10,8 +10,6 @@ app = Flask(__name__)
 
 import cosmos_db
 
-# BEGIN HELPERS ###########################################
-
 def get_rooms():
 	result = []
 	for room in cosmos_db.allRooms:
@@ -21,24 +19,14 @@ def get_rooms():
 def get_room( roomnum ):
 	return cosmos_db.find( roomnum )
 
-# END HELPERS #############################################
-
-# BEGIN API ###############################################
-
 @app.route('/')
 def serve_rooms():
-	return render_template('rooms.json', rooms = get_rooms() )
+	return render_template( 'rooms.json', rooms = get_rooms() )
 
 @app.route('/<roomnum>/')
 def serve_room( roomnum ):
-	return render_template('room.json', room = get_room( roomnum ) )
-
-# END API #################################################
-
-# RUN FLASK APP ###########################################
+	return render_template( 'room.json', room = get_room( roomnum ) )
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.
     	app.run()
-
-# END FLASK APP ###########################################

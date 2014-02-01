@@ -10,8 +10,6 @@ from sdb import Resident, sdb_session
 from flask import Flask, render_template, make_response
 app = Flask(__name__)
 
-# BEGIN HELPERS ###########################################
-
 # TODO: fix DoS vulnerabilties.
 # TODO: Used in people.py as well, perhaps abstract to sdb?
 
@@ -51,10 +49,6 @@ def get_room_people( room ):
 			result.append( person['kerberos'] )
 	return result
 
-# END HELPERS #############################################
-
-# BEGIN API ###############################################
-
 @app.route('/person/<username>/')
 def serve_person_room( username ):
 	return str( get_person_room( username ) ) # TODO: Template
@@ -63,12 +57,6 @@ def serve_person_room( username ):
 def serve_room_people( roomnum ):
 	return str( get_room_people( roomnum ) ) # TODO: Template
 
-# END API #################################################
-
-# RUN FLASK APP ###########################################
-
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.
     	app.run()
-
-# END FLASK APP ###########################################
