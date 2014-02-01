@@ -1,0 +1,5 @@
+[
+{% for person in packages %}
+"{{ person }}":{{ packages[ person ] }},
+{% endfor %}
+]
