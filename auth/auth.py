@@ -43,7 +43,22 @@ def logout():
 		resp.set_cookie( 'token', '' )
 		return resp
 	except authcore.AuthenticationError:
-		return "Authentication Error"	
+		return "Authentication Error"
+
+@app.route('/authtest')
+def authtest():
+	username = request.cookies.get('username')
+	token = request.cookies.get('token')
+
+	@authcore.restricted( "simmons-tech" )
+	def super_secret():
+		return "Welcome, Simmons Tech Member " + username + "!"
+
+	try:
+		return super_secret( username, token )
+	except authcore.AuthenticationError:
+		return "Nice try " + username + ". No bits for you."
+
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.

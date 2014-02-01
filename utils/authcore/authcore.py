@@ -229,7 +229,7 @@ def restricted( names, require_all = False ):
 			if True not in approval:
 				raise AuthenticationError( username )
 
-			f( *args, **kwargs )
+			return f( *args, **kwargs )
 		return decorated_f
 	return restricted_decorator
 
@@ -269,7 +269,7 @@ def authenticate_message( names, require_all = False ):
 			if True not in approval:
 				raise AuthenticationError( username )
 			
-			f( json.loads( message ) )
+			return f( json.loads( message ) )
 		return decorated_f
 	return authenticate_message_decorator	
 
