@@ -1,9 +1,24 @@
+from flask import Flask
 from werkzeug.wsgi import DispatcherMiddleware
-from auth import app as auth_app
-from people import app as people_app
 
-application = DispatcherMiddleware(
-	auth_app,
+from auth import app as auth_app
+from packages import app as packages_app
+from people import app as people_app
+from profile import app as profile_app
+from rooming_assignment import app as rooming_assignment_app
+from rooms import app as rooms_app
+
+app = Flask(__name__)
+
+app.wsgi_app = DispatcherMiddleware(
+	app.wsgi_app,
 	{
-		'/people':	people_app,
+		'/auth':		auth_app,
+		'/packages':		packages_app,
+		'/people':		people_app,
+		'/profile':		profile_app, # TODO: rename to profiles?
+		'/rooming_assignment':	rooming_assignment_app, # TODO: rename to rooming_assignments?
+		'/rooms':		rooms_app,
 	})
+
+app.run()
