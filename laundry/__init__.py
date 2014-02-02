@@ -1,0 +1,1 @@
+from laundry import *

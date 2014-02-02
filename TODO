@@ -1,10 +1,9 @@
 DESIGN READ WRITE /guestlist/
 DESIGN READ WRITE /media/
 WRITE /packages/
-FIX /rooming_assignment/ et. al. Lagginess?
 
-PORT /laundry/
-PORT /buses/
-PORT /dining/
+FIX /rooming_assignment/ templating (u'cheber'?)
 
-
+PORT /laundry/ from dashboard
+PORT /buses/ "
+PORT /dining/ "
