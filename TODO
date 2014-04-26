@@ -1,9 +1,12 @@
-DESIGN READ WRITE /guestlist/
-DESIGN READ WRITE /media/
-WRITE /packages/
+API changes:
 
-FIX /rooming_assignment/ templating (u'cheber'?)
+	DESIGN READ WRITE /guestlist/
+	DESIGN READ WRITE /media/
+	DESIGN READ WRITE /packages/
+	FIX /rooming_assignment/ templating (u'cheber'?)
+	DESIGN /laundry/
+	DESIGN /buses/
 
-PORT /laundry/ from dashboard
-PORT /buses/ "
-PORT /dining/ "
+Production WSGI options?
+
+Properly update wiki
