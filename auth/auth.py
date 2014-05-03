@@ -5,7 +5,8 @@ import sys, os
 sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../utils') ) )
 sys.path.append( os.path.abspath( os.path.join(sys.path[0], 'utils') ) )
 
-import authcore
+import authentication_core as authentication
+import authorization_core as authorization
 
 # Setup flask basics.
 from flask import Flask, render_template, make_response, request
@@ -24,12 +25,12 @@ def login():
 		username = request.form['username']
 		password = request.form['password']
 		try:
-			token = authcore.authenticate( username, password )
+			token = authentication.authenticate( username, password )
 			resp = make_response( render_template( 'logged_in.html', username = username ) )
 			resp.set_cookie( 'username', username )
 			resp.set_cookie( 'token', token )
 			return resp
-		except authcore.AuthenticationError:
+		except authentication.AuthenticationError:
 			return "Authentication Error"
 	else:
 		return render_template( 'login.html' )
@@ -39,12 +40,12 @@ def logout():
 	username = request.cookies.get('username')
 	token = request.cookies.get('token')
 	try:
-		authcore.invalidate_token( username, token )
+		authentication.invalidate_token( username, token )
 		resp = make_response( render_template( 'logged_out.html', username = username ) )
 		resp.set_cookie( 'username', '' )
 		resp.set_cookie( 'token', '' )
 		return resp
-	except authcore.AuthenticationError:
+	except authentication.AuthenticationError:
 		return "Authentication Error"
 
 # TODO: Remove in production.
@@ -53,13 +54,13 @@ def authtest():
 	username = request.cookies.get('username')
 	token = request.cookies.get('token')
 
-	@authcore.restricted( "simmons-tech" )
+	@authorization.restricted( "simmons-tech" )
 	def super_secret():
 		return "Welcome, Simmons Tech Member " + username + "!"
 
 	try:
 		return super_secret( username, token )
-	except authcore.AuthenticationError:
+	except authorization.AuthorizationError:
 		return "Nice try " + username + ". No bits for you."
 
 

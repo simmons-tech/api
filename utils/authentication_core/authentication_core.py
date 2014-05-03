@@ -14,7 +14,8 @@ import sys
 import os
 
 # Util imports
-from .. import db
+sys.path.append( os.path.abspath( os.path.join(sys.path[0], '..') ) )
+import db
 
 # Authcore imports
 import HMAC
