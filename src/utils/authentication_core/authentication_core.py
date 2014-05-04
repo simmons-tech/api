@@ -17,6 +17,7 @@ import os
 sys.path.append( os.path.abspath( os.path.join(sys.path[0], '..') ) )
 import db
 
+
 # Authcore imports
 import HMAC
 from authentication_exceptions import *
@@ -88,7 +89,7 @@ def validate_message( wrapped_message ):
 	if user.token == None:
 		raise AuthenticationError( username )
 
-	if hmac == HMAC.encode( message, username, user.token )['hmac']:
+	if hmac == HMAC.HMAC( message, user.token ):
 		return
 
 	raise AuthenticationError( username )

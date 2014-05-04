@@ -1,0 +1,24 @@
+# Human and Machine Readable description of the Simmons API.
+# This method is used to generate stubs for both local and remote use on both clients and providers.
+---
+- name: rooms
+  desc: Provides data about the physical characteristics of simmons rooms.
+  path: "rooms/"
+  fxns:
+  - name: get_all
+    desc: Returns a list of all rooms.
+    args: []
+    path: ""
+  - name: get_room
+    desc: Returns all data for a specific room.
+    args: [roomnum]
+    path: "<roomnum>/"
+- name: TODO
+  desc: TODO
+  path: TODO
+  fxns:
+  - name: TODO
+    desc: TODO
+    args: [TODO]
+    path: TODO
+

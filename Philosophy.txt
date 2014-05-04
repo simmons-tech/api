@@ -1,0 +1,5 @@
+The Simmons API is designed as a series of independant appstacks, each of which has responsibility for a particular aspect of the dorm.
+
+In order to support this, we have had to give up the idea of an atomic operation over multiple appastacks. When desiging appstacks, keep this in mind. If it is essential that an atomic operation occur, then make sure everything involved ends up in the same appstack. Do try to avoid bloated appstacks, however.
+
+API Generation: Each appstack defines a HTTP API. In addition we define and compile a Javascript API and a Python API. Both are thin wrappers around the HTTP API, and are defined in associated .api files.

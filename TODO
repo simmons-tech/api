@@ -10,3 +10,22 @@ API changes:
 Production WSGI options?
 
 Properly update wiki
+
+Make groups and users distinct in code -- string representation isn't cutting it.
+	URI, i.e. sim_user://woursler      ???
+	URI, i.e. sim_group://simmons-tech ???
+	Other possibility: Mailing list approach / integration?
+
+Make a simple_auth module for teh n00bs
+
+Make this work with pridveledge seperation.
+
+Relative paths are a mess! Sort this out properly. This means desiging a better structure.
+
+Rename utils to utilities.
+
+HMAC Deserves it's own module.
+
+API Generation. Design Parser / Lexer
+
+Consider using a SHA hash rather than MD5 for HMACs.
