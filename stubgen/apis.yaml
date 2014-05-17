@@ -2,7 +2,7 @@
 # This method is used to generate stubs for both local and remote use on both clients and providers.
 ---
 - name: rooms
-  desc: Provides data about the physical characteristics of simmons rooms.
+  desc: Provides data about the physical characteristics of Simmons rooms.
   path: "rooms/"
   fxns:
   - name: get_all
@@ -13,6 +13,22 @@
     desc: Returns all data for a specific room.
     args: [roomnum]
     path: "<roomnum>/"
+- name: people
+  desc: Provides identity-related data about the residents of Simmons residents.
+  path: "people/"
+  fxns:
+  - name: get_all
+    desc: Returns a list of all current residents' usernames
+    args: []
+    path: ""
+  - name: get_person
+    desc: Returns all data on a specific resident.
+    args: [username]
+    path: "<username>/"
+  - name: query
+    desc: Returns the usernames matching the passed query. To match a query, a user has to have each space seperated token (querylet) as part of its special fields. The special fields are 'kerberos', 'firstname', and 'lastname'. Matches are case insenstive.
+    args: [query]
+    path: "?q=<query>"
 - name: TODO
   desc: TODO
   path: TODO
@@ -22,3 +38,13 @@
     args: [TODO]
     path: TODO
 
+#NAME, ARGSLIST, URL, DOC # TODO: Handle different responses.
+#
+#PEOPLE:
+#get_all():'/'
+#get_person( username ):'<username>/'
+#query( querystring ):'/?=<querystring>'
+
+#ROOMING ASSIGNMENT:
+#get_room_of(username):'person/<username>/'
+#get_residents_of(roomnum):'room/<roomnum>/'

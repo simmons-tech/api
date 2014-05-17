@@ -7,6 +7,16 @@ API changes:
 	DESIGN /laundry/
 	DESIGN /buses/
 
+---
+One-off tasks:
+==============
+Put cosmosdb into a proper DB
+
+Rewrite people API to use SQL alchemy Queries.
+
+Make a guest-list API (not integrated with SDB).
+---
+
 Production WSGI options?
 
 Properly update wiki
@@ -29,3 +39,5 @@ HMAC Deserves it's own module.
 API Generation. Design Parser / Lexer
 
 Consider using a SHA hash rather than MD5 for HMACs.
+
+Python stubs should be sorted into namespaces / modules.

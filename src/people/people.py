@@ -24,7 +24,6 @@ def get_people():
 			'kerberos'	:person.username,
 			'firstname'	:person.firstname,
 			'lastname'	:person.lastname,
-			'room'		:person.room,
 			'year'		:person.year,
 			'title'		:person.title,
 			'email'		:person.email,
@@ -51,14 +50,14 @@ def get_active_residents():
 	for username in session.query(ActiveUsernames):
 		active[ username.username ] = username.active
 
-	usernames = []
+	active_residents = []
 	for person in people:
 		if active[ person['kerberos'] ]:
-			usernames.append( person['kerberos'] )
+			active_residents.append( person )
 
 	session.close()
 
-	return usernames
+	return active_residents
 
 @app.route('/')
 def serve_active_residents():
@@ -71,7 +70,25 @@ def serve_person( username ):
 	return render_template('resident.json', resident = get_person( username ) )
 
 def serve_query( query ):
-	return "Query: " + query # TODO: serve query response...
+	querylets = query.split()
+
+	# TODO: This could be done with a proper SQL Query.
+	# To match a query, a user has to have each space seperated token (querylet) as part of its special fields.
+	# The special fields are 'kerberos', 'firstname', and 'lastname'.
+	# Matches are case insenstive.
+	#
+	# For room based search, check the rooming_assignment API.
+	def is_match( resident ):
+		for querylet in querylets:
+			matches_querylet =  False
+			for field in [ 'kerberos','firstname','lastname' ]:
+				if querylet.lower() in resident[field].lower():
+					matches_querylet = True
+			if not matches_querylet:
+				return False
+		return True
+
+	return render_template('residents.json', residents = filter( is_match, get_active_residents() ) )
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.

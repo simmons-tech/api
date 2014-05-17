@@ -1,5 +1,5 @@
 [
 {% for resident in residents %}
-"{{ resident }}",
+"{{ resident['kerberos'] }}",
 {% endfor %}
 ]
