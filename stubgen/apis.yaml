@@ -29,14 +29,6 @@
     desc: Returns the usernames matching the passed query. To match a query, a user has to have each space seperated token (querylet) as part of its special fields. The special fields are 'kerberos', 'firstname', and 'lastname'. Matches are case insenstive.
     args: [query]
     path: "?q=<query>"
-- name: TODO
-  desc: TODO
-  path: TODO
-  fxns:
-  - name: TODO
-    desc: TODO
-    args: [TODO]
-    path: TODO
 
 #NAME, ARGSLIST, URL, DOC # TODO: Handle different responses.
 #

@@ -12,6 +12,8 @@ One-off tasks:
 ==============
 Put cosmosdb into a proper DB
 
+Figure out python relative imports.
+
 Rewrite people API to use SQL alchemy Queries.
 
 Make a guest-list API (not integrated with SDB).

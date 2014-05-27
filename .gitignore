@@ -1,10 +1,10 @@
 TODO
 
 # Ignore the SDB Password.
-utils/sdb/password
+src/utils/sdb/password
 
 # Ignore the DB contents.
-utils/db/db/*
+src/utils/db/db/*
 
 *~
 *.save

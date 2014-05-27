@@ -1,48 +1,46 @@
 #!/usr/bin/env python
 
 import yaml
+import jinja2
 
-#TODO Jinja2 Templating.
+templateLoader = jinja2.FileSystemLoader( searchpath="templates/" )
+templateEnv = jinja2.Environment( loader=templateLoader )
 
-stream = open("apis.yaml", 'r')
-apis = yaml.load(stream)
-
-print 'Generating client python stubs. These stubs are standalone.'
+with open("apis.yaml", 'r') as stream:
+	apis = yaml.load(stream)
 
 server_path = 'http://localhost:5000/'
 
-for api in apis:
-	print api['name'],'-',api['desc']
-	for method in api['fxns']:
-		print '\t*', method['name'] + str( tuple(method['args']) ),'-', server_path + api['path'] + method['path']
-		print '\t\t', method['desc']
-
 #TODO: Must be a more elegant way to do this.
-def python_replace( s ):
-	r = '\''
+def url_replace( s ):
+	r = '"'
 	for c in s:
 		if c == "<" :
-			r += '\'+'
+			r += '"+'
 		elif c == ">" :
-			r += '+\''
+			r += '+"'
 		else:
 			r += c
-	r += '\''
+	r += '"'
 	return r
-			
 
-import jinja2
+###
+#
+# Javascript
+#
+###
 
-templateLoader = jinja2.FileSystemLoader( searchpath="" )
-templateEnv = jinja2.Environment( loader=templateLoader )
+with open('stubs/javascript/simmons-api.js', 'w') as f:
+	template = templateEnv.get_template( 'stubs.js' )
+	f.write( template.render( apis = apis, server_path = server_path , f = url_replace ) )
 
-TEMPLATE_FILE = "stubs.py"
-template = templateEnv.get_template( TEMPLATE_FILE )
+###
+#
+# Python
+#
+###
 
-# Here we add a new input variable containing a list.
-# Its contents will be expanded in the HTML as a unordered list.
-
-outputText = template.render( apis = apis, server_path = server_path , f = python_replace)
-
-print outputText
+with open('stubs/python/simmons-api.py', 'w') as f:
+	template = templateEnv.get_template( 'stubs.py' )
+	f.write( template.render( apis = apis, server_path = server_path , f = url_replace ) )
 	
