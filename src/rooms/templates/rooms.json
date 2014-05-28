@@ -1,5 +1,0 @@
-[
-{% for room in rooms %}
-"{{ room }}",
-{% endfor %}
-]

@@ -1,27 +1,25 @@
 #!/usr/bin/python
 
 # Setup flask basics.
-from flask import Flask, render_template, make_response
+from flask import Flask, jsonify
 app = Flask(__name__)
 
 import cosmos_db
 
-def get_rooms():
-	result = []
-	for room in cosmos_db.allRooms:
-		result.append( room.num )
-	return result
-
-def get_room( roomnum ):
-	return cosmos_db.find( roomnum )
-
 @app.route('/')
 def serve_rooms():
-	return render_template( 'rooms.json', rooms = get_rooms() )
+	roomnums = [ room.num for room in cosmos_db.allRooms ]
+	return jsonify( rooms = roomnums )
 
 @app.route('/<roomnum>/')
 def serve_room( roomnum ):
-	return render_template( 'room.json', room = get_room( roomnum ) )
+	room = cosmos_db.find( roomnum )
+	return jsonify(
+		roomnum = room.num,
+		grt = room.grt,
+		capacity = room.capacity,
+		sq_ft = room.size,
+		side = room.view )
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.

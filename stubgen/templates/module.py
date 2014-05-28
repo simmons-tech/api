@@ -4,20 +4,17 @@
 # This will ensure that changes are reflected in other
 # languages stubs.
 
-import urllib2
-import json
+from __common import *
 
-def RPC_call( path ):
-	response = urllib2.urlopen( '{{server_path}}' + path )
-	return json.load(response)
-
-{% for api in apis %}
+###
 # Beginning stubs for {{api['name']}}:
 # {{api['desc']}}
+###
 {% for method in api['fxns'] %}
 # {{method['desc']}}
 def {{method['name']}}( {% for arg in method['args'] %}{{arg}}{% if not loop.last %}, {% endif %}{% endfor %} ):
 	return RPC_call( {{ f( api['path'] + method['path'] ) }} )
 {% endfor %}
+###
 # End of stubs for {{api['name']}}
-{% endfor %}
+###

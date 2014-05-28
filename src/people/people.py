@@ -13,21 +13,8 @@ import json
 from functools import wraps
 from flask import redirect, request, current_app
 
-def support_jsonp(f):
-    """Wraps JSONified output for JSONP"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        callback = request.args.get('callback', False)
-        if callback:
-            content = str(callback) + '(' + str(f().data) + ')'
-            return current_app.response_class(content, mimetype='application/json')
-        else:
-            return f(*args, **kwargs)
-    return decorated_function
-
 def get_people():
 	session = sdb_session()
-
 	# Make a full list of people of interest...
 	people = []
 	for person in session.query(Resident):
@@ -41,7 +28,6 @@ def get_people():
 			'title'		:person.title,
 			'email'		:person.email,
 			} )
-
 		
 	session.close()
 
@@ -55,9 +41,8 @@ def get_person( username ):
 
 def get_active_residents():
 	session = sdb_session()
-
 	people = get_people()
-	
+
 	# Figure out which users are active...
 	active = {}
 	for username in session.query(ActiveUsernames):
@@ -73,11 +58,12 @@ def get_active_residents():
 	return active_residents
 
 @app.route('/')
-@support_jsonp
 def serve_active_residents():
 	if request.args.get('q'):
 		return  serve_query( request.args.get('q') )
-	return render_template('residents.json', residents = get_active_residents() )
+	residents = get_active_residents()
+	usernames = [ resident['kerberos'] for resident in residents ]
+	return jsonify( usernames = usernames )
 
 @app.route('/<username>/')
 def serve_person( username ):
