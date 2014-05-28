@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-# Add the Simmons DB utils to the PYTHONPATH (temporary).
-import sys, os
-sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../utils') ) )
-
 # Setup flask basics.
 from flask import Flask, render_template, make_response
 app = Flask(__name__)

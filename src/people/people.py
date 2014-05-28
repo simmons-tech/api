@@ -1,10 +1,6 @@
 #!/usr/bin/python
 
-# Add the Simmons DB utils to the PYTHONPATH (temporary).
-import sys, os
-sys.path.append( os.path.abspath( os.path.join(sys.path[0], 'utils') ) )
-
-from sdb import Resident, ActiveUsernames, sdb_session
+from ..utils.sdb import Resident, ActiveUsernames, sdb_session
 
 # Setup flask basics.
 from functools import wraps

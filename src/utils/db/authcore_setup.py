@@ -1,9 +1,8 @@
 import base64
 import pbkdf2
-import sys
 import os
 import json
-sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../') ) )
+
 from db import *
 
 user_db = init('user')

@@ -14,8 +14,7 @@ import sys
 import os
 
 # Util imports
-sys.path.append( os.path.abspath( os.path.join(sys.path[0], '..') ) )
-import db
+from .. import db
 
 
 # Authcore imports

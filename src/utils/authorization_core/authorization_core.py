@@ -14,9 +14,8 @@ import sys
 import os
 
 # Util imports
-sys.path.append( os.path.abspath( os.path.join(sys.path[0], '..') ) )
-import authentication_core
-import db
+from .. import authentication_core
+from .. import db
 
 # Local imports
 from authorization_exceptions import *

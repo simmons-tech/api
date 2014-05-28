@@ -1,12 +1,7 @@
 #!/usr/bin/python
 
-# Add the Simmons DB utils to the PYTHONPATH (temporary).
-import sys, os
-sys.path.append( os.path.abspath( os.path.join(sys.path[0], '../utils') ) )
-sys.path.append( os.path.abspath( os.path.join(sys.path[0], 'utils') ) )
-
-import authentication_core as authentication
-import authorization_core as authorization
+from ..utils import authentication_core #as authentication
+from ..utils import authorization_core #as authorization
 
 # Setup flask basics.
 from flask import Flask, render_template, make_response, request
@@ -25,12 +20,12 @@ def login():
 		username = request.form['username']
 		password = request.form['password']
 		try:
-			token = authentication.authenticate( username, password )
+			token = authentication_core.authenticate( username, password )
 			resp = make_response( render_template( 'logged_in.html', username = username ) )
 			resp.set_cookie( 'username', username )
 			resp.set_cookie( 'token', token )
 			return resp
-		except authentication.AuthenticationError:
+		except authentication_core.AuthenticationError:
 			return "Authentication Error"
 	else:
 		return render_template( 'login.html' )
@@ -40,12 +35,12 @@ def logout():
 	username = request.cookies.get('username')
 	token = request.cookies.get('token')
 	try:
-		authentication.invalidate_token( username, token )
+		authentication_core.invalidate_token( username, token )
 		resp = make_response( render_template( 'logged_out.html', username = username ) )
 		resp.set_cookie( 'username', '' )
 		resp.set_cookie( 'token', '' )
 		return resp
-	except authentication.AuthenticationError:
+	except authentication_core.AuthenticationError:
 		return "Authentication Error"
 
 # TODO: Remove in production.
@@ -54,13 +49,13 @@ def authtest():
 	username = request.cookies.get('username')
 	token = request.cookies.get('token')
 
-	@authorization.restricted( "simmons-tech" )
+	@authorization_core.restricted( "simmons-tech" )
 	def super_secret():
 		return "Welcome, Simmons Tech Member " + username + "!"
 
 	try:
 		return super_secret( username, token )
-	except authorization.AuthorizationError:
+	except authorization_core.AuthorizationError:
 		return "Nice try " + username + ". No bits for you."
 
 
