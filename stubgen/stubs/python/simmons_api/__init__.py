@@ -5,4 +5,8 @@
 # languages stubs.
 
 import rooms
+import rooming_assignment
 import people
+import profiles
+import laundry
+import buses

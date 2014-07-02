@@ -4,7 +4,7 @@ from lxml import etree
 import json
 
 # Setup flask basics.
-from flask import Flask, render_template, request
+from flask import Flask, jsonify
 app = Flask(__name__)
 
 def get_buses():
@@ -39,7 +39,7 @@ def get_buses():
 
 @app.route('/')
 def serve_raw():
-	return json.dumps( get_buses() )
+	return jsonify( buses = get_buses() )
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.

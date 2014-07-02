@@ -25,8 +25,23 @@ this.rooms = {
 	}
 }; // End of stubs for rooms
 
+// Beginning stubs for rooming_assignment:
+// Provides information about the mapping between residents and the rooms where they live. Historical data is planned.
+this.rooming_assignment = {
+	
+	// Returns the room that the given person is currently living in.
+	get_room_by_person: function( username ) {
+		return RPC_call( "rooming_assignment//person/"+username+"/" );
+	}
+
+	// Returns the people that currently reside in the given room.
+	get_people_by_room: function( roomnum ) {
+		return RPC_call( "rooming_assignment//room/"+roomnum+"/" );
+	}
+}; // End of stubs for rooming_assignment
+
 // Beginning stubs for people:
-// Provides identity-related data about the residents of Simmons residents.
+// Provides identity-related data about the residents of Simmons.
 this.people = {
 	
 	// Returns a list of all current residents' usernames
@@ -44,3 +59,33 @@ this.people = {
 		return RPC_call( "people/?q="+query+"" );
 	}
 }; // End of stubs for people
+
+// Beginning stubs for profiles:
+// Provides more personal information about the residents of Simmons.
+this.profiles = {
+	
+	// Returns a resident profile.
+	get_profile: function( username ) {
+		return RPC_call( "profile/"+username+"/" );
+	}
+}; // End of stubs for profiles
+
+// Beginning stubs for laundry:
+// Provides information on the current state of laundry machines in the building.
+this.laundry = {
+	
+	// Returns a raw dump of all avalible information on the laundry. Stopgap until a better API is enacted.
+	get_raw: function(  ) {
+		return RPC_call( "laundry/" );
+	}
+}; // End of stubs for laundry
+
+// Beginning stubs for buses:
+// Provides information on the current state of buses coming to Simmons.
+this.buses = {
+	
+	// Returns a raw dump of all avalible information on buses. Stopgap until a better API is enacted.
+	get_raw: function(  ) {
+		return RPC_call( "buses/" );
+	}
+}; // End of stubs for buses

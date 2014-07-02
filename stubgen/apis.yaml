@@ -1,6 +1,7 @@
 # Human and Machine Readable description of the Simmons API.
 # This method is used to generate stubs for both local and remote use on both clients and providers.
 ---
+
 - name: rooms
   desc: Provides data about the physical characteristics of Simmons rooms.
   path: "rooms/"
@@ -13,8 +14,22 @@
     desc: Returns all data for a specific room.
     args: [roomnum]
     path: "<roomnum>/"
+
+- name: rooming_assignment
+  desc: Provides information about the mapping between residents and the rooms where they live. Historical data is planned.
+  path: "rooming_assignment/"
+  fxns:
+  - name: get_room_by_person
+    desc: Returns the room that the given person is currently living in.
+    args: [username]
+    path: "/person/<username>/"
+  - name: get_people_by_room
+    desc: Returns the people that currently reside in the given room.
+    args: [roomnum]
+    path: "/room/<roomnum>/"
+
 - name: people
-  desc: Provides identity-related data about the residents of Simmons residents.
+  desc: Provides identity-related data about the residents of Simmons.
   path: "people/"
   fxns:
   - name: get_all
@@ -30,13 +45,29 @@
     args: [query]
     path: "?q=<query>"
 
-#NAME, ARGSLIST, URL, DOC # TODO: Handle different responses.
-#
-#PEOPLE:
-#get_all():'/'
-#get_person( username ):'<username>/'
-#query( querystring ):'/?=<querystring>'
+- name: profiles
+  desc: Provides more personal information about the residents of Simmons.
+  path: "profile/"
+  fxns:
+  - name: get_profile
+    desc: Returns a resident profile.
+    args: [username]
+    path: "<username>/"
 
-#ROOMING ASSIGNMENT:
-#get_room_of(username):'person/<username>/'
-#get_residents_of(roomnum):'room/<roomnum>/'
+- name: laundry
+  desc: Provides information on the current state of laundry machines in the building.
+  path: "laundry/"
+  fxns:
+  - name: get_raw
+    desc: Returns a raw dump of all avalible information on the laundry. Stopgap until a better API is enacted.
+    args: []
+    path: ""
+
+- name: buses
+  desc: Provides information on the current state of buses coming to Simmons.
+  path: "buses/"
+  fxns:
+  - name: get_raw
+    desc: Returns a raw dump of all avalible information on buses. Stopgap until a better API is enacted.
+    args: []
+    path: ""

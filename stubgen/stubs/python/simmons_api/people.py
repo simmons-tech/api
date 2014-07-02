@@ -8,7 +8,7 @@ from __common import *
 
 ###
 # Beginning stubs for people:
-# Provides identity-related data about the residents of Simmons residents.
+# Provides identity-related data about the residents of Simmons.
 ###
 
 # Returns a list of all current residents' usernames
