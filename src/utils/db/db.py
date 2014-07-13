@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from sqlalchemy import *
-from sqlalchemy.orm import *z
+from sqlalchemy.orm import *
 from sqlalchemy.ext.declarative import *
 import os
 
@@ -9,7 +9,7 @@ import os
 
 UserBase = declarative_base()
 GroupBase = declarative_base()
-RoomsBase = declarative_base()
+RoomBase = declarative_base()
 
 class User(UserBase):
 	__tablename__= "user"
@@ -25,11 +25,10 @@ class Group(GroupBase):
 	immediate_members = Column(String(512))
 	subgroups = Column(String(512))
 
-class Rooms(RoomsBase):
-	__tablename__ = "rooms"
+class Room(RoomBase):
+	__tablename__ = "room"
 	num = Column(String, primary_key=True)
-	grt = Column(String)
-	capacity = Column(String)
+	type = Column(String)
 	size = Column(String)
 	view = Column(String)
 	X = Column(Integer)
@@ -37,8 +36,8 @@ class Rooms(RoomsBase):
 	hasCurvyWall = Column(String)
 	bathroom = Column(String)
 
-class Section(RoomsBase):
-	__tablename__ = "sections"
+class Section(RoomBase):
+	__tablename__ = "section"
 	label = Column(String, primary_key=True)
 
 def dbsetup(name, base):
