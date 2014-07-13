@@ -8,5 +8,5 @@ import urllib2
 import json
 
 def RPC_call( path ):
-	response = urllib2.urlopen( 'http://localhost:5000/' + path )
+	response = urllib2.urlopen( 'http://simapi.xvm.mit.edu/' + path )
 	return json.load(response)

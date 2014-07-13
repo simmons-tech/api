@@ -13,11 +13,11 @@ from __common import *
 
 # Returns the room that the given person is currently living in.
 def get_room_by_person( username ):
-	return RPC_call( "rooming_assignment//person/"+username+"/" )
+	return RPC_call( "rooming_assignment/person/"+username+"/" )
 
 # Returns the people that currently reside in the given room.
 def get_people_by_room( roomnum ):
-	return RPC_call( "rooming_assignment//room/"+roomnum+"/" )
+	return RPC_call( "rooming_assignment/room/"+roomnum+"/" )
 
 ###
 # End of stubs for rooming_assignment

@@ -4,8 +4,9 @@
 // This will ensure that changes are reflected in other
 // languages stubs.
 
-this.RPC_call = function( path ) {
-	//print 'tried to call to {{server_path}}' + path;
+this.RPC_call = function( path, callback ) {
+	console.log("Tried to call to {{server_path}}" + path);
+        $.getJSON("{{server_path}}" + path, callback);
 	return "";
 }
 
@@ -15,8 +16,8 @@ this.RPC_call = function( path ) {
 this.{{api['name']}} = {
 	{% for method in api['fxns'] %}
 	// {{method['desc']}}
-	{{method['name']}}: function( {% for arg in method['args'] %}{{arg}}{% if not loop.last %}, {% endif %}{% endfor %} ) {
-		return RPC_call( {{ f( api['path'] + method['path'] ) }} );
-	}
+	{{method['name']}}: function( {% for arg in method['args'] %}{{arg}}, {% endfor %}callback ) {
+		return RPC_call( {{ f( api['path'] + method['path'] ) }}, callback );
+	},
 {% endfor %}}; // End of stubs for {{api['name']}}
 {% endfor %}

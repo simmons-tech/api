@@ -22,11 +22,11 @@
   - name: get_room_by_person
     desc: Returns the room that the given person is currently living in.
     args: [username]
-    path: "/person/<username>/"
+    path: "person/<username>/"
   - name: get_people_by_room
     desc: Returns the people that currently reside in the given room.
     args: [roomnum]
-    path: "/room/<roomnum>/"
+    path: "room/<roomnum>/"
 
 - name: people
   desc: Provides identity-related data about the residents of Simmons.

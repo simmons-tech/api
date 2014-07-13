@@ -9,7 +9,7 @@ templateEnv = jinja2.Environment( loader=templateLoader )
 with open("apis.yaml", 'r') as stream:
 	apis = yaml.load(stream)
 
-server_path = 'http://localhost:5000/'
+server_path = 'http://simapi.xvm.mit.edu/'
 
 #TODO: Must be a more elegant way to do this.
 def url_replace( s ):

@@ -4,8 +4,9 @@
 // This will ensure that changes are reflected in other
 // languages stubs.
 
-this.RPC_call = function( path ) {
-	//print 'tried to call to http://localhost:5000/' + path;
+this.RPC_call = function( path, callback ) {
+	console.log("Tried to call to http://simapi.xvm.mit.edu/" + path);
+        $.getJSON("http://simapi.xvm.mit.edu/" + path, callback);
 	return "";
 }
 
@@ -15,14 +16,14 @@ this.RPC_call = function( path ) {
 this.rooms = {
 	
 	// Returns a list of all rooms.
-	get_all: function(  ) {
-		return RPC_call( "rooms/" );
-	}
+	get_all: function( callback ) {
+		return RPC_call( "rooms/", callback );
+	},
 
 	// Returns all data for a specific room.
-	get_room: function( roomnum ) {
-		return RPC_call( "rooms/"+roomnum+"/" );
-	}
+	get_room: function( roomnum, callback ) {
+		return RPC_call( "rooms/"+roomnum+"/", callback );
+	},
 }; // End of stubs for rooms
 
 // Beginning stubs for rooming_assignment:
@@ -30,14 +31,14 @@ this.rooms = {
 this.rooming_assignment = {
 	
 	// Returns the room that the given person is currently living in.
-	get_room_by_person: function( username ) {
-		return RPC_call( "rooming_assignment//person/"+username+"/" );
-	}
+	get_room_by_person: function( username, callback ) {
+		return RPC_call( "rooming_assignment/person/"+username+"/", callback );
+	},
 
 	// Returns the people that currently reside in the given room.
-	get_people_by_room: function( roomnum ) {
-		return RPC_call( "rooming_assignment//room/"+roomnum+"/" );
-	}
+	get_people_by_room: function( roomnum, callback ) {
+		return RPC_call( "rooming_assignment/room/"+roomnum+"/", callback );
+	},
 }; // End of stubs for rooming_assignment
 
 // Beginning stubs for people:
@@ -45,19 +46,19 @@ this.rooming_assignment = {
 this.people = {
 	
 	// Returns a list of all current residents' usernames
-	get_all: function(  ) {
-		return RPC_call( "people/" );
-	}
+	get_all: function( callback ) {
+		return RPC_call( "people/", callback );
+	},
 
 	// Returns all data on a specific resident.
-	get_person: function( username ) {
-		return RPC_call( "people/"+username+"/" );
-	}
+	get_person: function( username, callback ) {
+		return RPC_call( "people/"+username+"/", callback );
+	},
 
 	// Returns the usernames matching the passed query. To match a query, a user has to have each space seperated token (querylet) as part of its special fields. The special fields are 'kerberos', 'firstname', and 'lastname'. Matches are case insenstive.
-	query: function( query ) {
-		return RPC_call( "people/?q="+query+"" );
-	}
+	query: function( query, callback ) {
+		return RPC_call( "people/?q="+query+"", callback );
+	},
 }; // End of stubs for people
 
 // Beginning stubs for profiles:
@@ -65,9 +66,9 @@ this.people = {
 this.profiles = {
 	
 	// Returns a resident profile.
-	get_profile: function( username ) {
-		return RPC_call( "profile/"+username+"/" );
-	}
+	get_profile: function( username, callback ) {
+		return RPC_call( "profile/"+username+"/", callback );
+	},
 }; // End of stubs for profiles
 
 // Beginning stubs for laundry:
@@ -75,9 +76,9 @@ this.profiles = {
 this.laundry = {
 	
 	// Returns a raw dump of all avalible information on the laundry. Stopgap until a better API is enacted.
-	get_raw: function(  ) {
-		return RPC_call( "laundry/" );
-	}
+	get_raw: function( callback ) {
+		return RPC_call( "laundry/", callback );
+	},
 }; // End of stubs for laundry
 
 // Beginning stubs for buses:
@@ -85,7 +86,7 @@ this.laundry = {
 this.buses = {
 	
 	// Returns a raw dump of all avalible information on buses. Stopgap until a better API is enacted.
-	get_raw: function(  ) {
-		return RPC_call( "buses/" );
-	}
+	get_raw: function( callback ) {
+		return RPC_call( "buses/", callback );
+	},
 }; // End of stubs for buses
