@@ -4,7 +4,7 @@ from ..utils.sdb import Resident, ActiveUsernames, sdb_session
 
 # Setup flask basics.
 from functools import wraps
-from flask import Flask, render_template, request, jsonify, redirect, current_app
+from flask import Flask, request, jsonify, redirect, current_app
 app = Flask(__name__)
 
 # TODO: fix DoS vulnerabilties.
@@ -25,7 +25,7 @@ def get_people():
 			'firstname'	:person.firstname,
 			'lastname'	:person.lastname,
 			'year'		:person.year,
-			'title'		:person.title,
+			#'title'		:person.title,
 			'email'		:person.email,
 			} )
 		
@@ -67,7 +67,8 @@ def serve_active_residents():
 
 @app.route('/<username>/')
 def serve_person( username ):
-	return render_template('resident.json', resident = get_person( username ) )
+	resident = get_person( username )
+	return jsonify( **resident )
 
 def serve_query( query ):
 	querylets = query.split()
@@ -88,7 +89,7 @@ def serve_query( query ):
 				return False
 		return True
 
-	return render_template('residents.json', residents = filter( is_match, get_active_residents() ) )
+	return jsonify( usernames = [ resident['kerberos'] for resident in filter( is_match, get_active_residents() ) ] )
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.

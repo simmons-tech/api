@@ -3,7 +3,7 @@
 from ..utils.sdb import Package, sdb_session
 
 # Setup flask basics.
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 def get_packages():
@@ -23,7 +23,7 @@ def get_packages():
 
 @app.route('/')
 def serve_all_packages():
-	return render_template('packages.json', packages = get_packages() )
+	return jsonify( packages = get_packages() ) # NEEDS WORK: SHOULD BE A LIST OF OBJS
 
 @app.route('/<username>/')
 def serve_user_packages( username ):

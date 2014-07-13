@@ -3,7 +3,7 @@
 from ..utils.sdb import Resident, sdb_session
 
 # Setup flask basics.
-from flask import Flask, render_template, make_response
+from flask import Flask, jsonify, make_response
 app = Flask(__name__)
 
 # TODO: fix DoS vulnerabilties.
@@ -40,7 +40,12 @@ def get_person( username ):
 
 @app.route('/<username>/')
 def serve_profile( username ):
-	return render_template('resident.json', resident = get_person( username ) )
+	resident = get_person( username )
+	profile = {
+		"title": resident['title'],
+		"hometown": "DOESN'T WORK YET :(",
+	}
+	return jsonify( **profile )
 
 @app.route('/<username>/picture.png')
 def serve_profile_picture( username ):

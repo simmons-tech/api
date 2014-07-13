@@ -3,7 +3,7 @@
 from ..utils.sdb import Resident, sdb_session
 
 # Setup flask basics.
-from flask import Flask, render_template, make_response
+from flask import Flask, make_response
 app = Flask(__name__)
 
 # TODO: fix DoS vulnerabilties.
