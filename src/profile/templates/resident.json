@@ -1,4 +1,10 @@
 &#123;
 "title": "{{ resident.title }}",
-"hometown": "DOESN'T WORK YET :(",
+"home_city": "{{ resident.home_city }}",
+"home_state": "{{ resident.home_state }}",
+"home_country": "{{ resident.home_country }}",
+"quote": "{{ resident.quote }}",
+"homepage": "{{ resident.homepage }}",
+"favorite_category": "{{ resident.favorite_category }}",
+"favorite_value": "{{ resident.favorite_value }}",
 &#125;

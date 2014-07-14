@@ -25,8 +25,14 @@ def get_people():
 			'year'		:person.year,
 			'title'		:person.title,
 			'email'		:person.email,
+			'home_city'	:person.home_city,
+			'home_state'	:person.home_state,
+			'home_country'	:person.home_country,
+			'quote'			:person.quote,
+			'homepage'		:person.homepage,
+			'favorite_category'	:person.favorite_category,
+			'favorite_value'	:person.favorite_value,
 			} )
-
 		
 	session.close()
 
@@ -43,7 +49,13 @@ def serve_profile( username ):
 	resident = get_person( username )
 	profile = {
 		"title": resident['title'],
-		"hometown": "DOESN'T WORK YET :(",
+		"home_city": resident['home_city'],
+		"home_state"	:resident['home_state'],
+		"home_country"	:resident['home_country'],
+		"quote"			:resident['quote'],
+		"homepage"		:resident['homepage'],
+		"favorite_category"	:resident['favorite_category'],
+		"favorite_value"	:resident['favorite_value'],
 	}
 	return jsonify( **profile )
 
