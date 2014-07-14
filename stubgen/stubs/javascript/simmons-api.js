@@ -6,8 +6,7 @@
 
 this.RPC_call = function( path, callback ) {
 	console.log("Tried to call to http://simapi.xvm.mit.edu/" + path);
-        $.getJSON("http://simapi.xvm.mit.edu/" + path, callback);
-	return "";
+        return $.getJSON("http://simapi.xvm.mit.edu/" + path, callback);
 }
 
 
@@ -90,3 +89,18 @@ this.buses = {
 		return RPC_call( "buses/", callback );
 	},
 }; // End of stubs for buses
+
+// Beginning stubs for packages:
+// Provides information about who has packages.
+this.packages = {
+	
+	// Returns a dump object with attrs that are usernames, and values that are numbers of packages.
+	get_raw: function( callback ) {
+		return RPC_call( "packages/", callback );
+	},
+
+	// Get the number of packages the given user has.
+	get_packages_for_user: function( username, callback ) {
+		return RPC_call( "packages/"+username+"/", callback );
+	},
+}; // End of stubs for packages

@@ -36,6 +36,16 @@ with open('stubs/javascript/simmons-api.js', 'w') as f:
 
 ###
 #
+# Markdown
+#
+###
+
+with open('stubs/markdown/simmons-api.md', 'w') as f:
+	template = templateEnv.get_template( 'stubs.md')
+	f.write( template.render( apis = apis, server_path = server_path, f = lambda x : x ) )
+
+###
+#
 # Python
 #
 ###

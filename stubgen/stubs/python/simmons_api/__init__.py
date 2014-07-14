@@ -10,3 +10,4 @@ import people
 import profiles
 import laundry
 import buses
+import packages
