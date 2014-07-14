@@ -1,0 +1,5 @@
+virtualenv
+Flask
+pbkdf2
+sqlalchemy
+psycopg2
