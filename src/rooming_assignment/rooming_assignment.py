@@ -3,7 +3,7 @@
 from ..utils.sdb import Resident, sdb_session
 
 # Setup flask basics.
-from flask import Flask, make_response
+from flask import Flask, jsonify, make_response
 app = Flask(__name__)
 
 # TODO: fix DoS vulnerabilties.
@@ -47,11 +47,13 @@ def get_room_people( room ):
 
 @app.route('/person/<username>/')
 def serve_person_room( username ):
-	return str( get_person_room( username ) ) # TODO: Template
+	room = get_person_room( username )
+	return jsonify( room = room )
 
 @app.route('/room/<roomnum>/')
 def serve_room_people( roomnum ):
-	return str( get_room_people( roomnum ) ) # TODO: Template
+	people = get_room_people( roomnum )
+	return jsonify( usernames = people )
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.
