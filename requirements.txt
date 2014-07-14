@@ -3,3 +3,4 @@ Flask
 pbkdf2
 sqlalchemy
 psycopg2
+lxml
