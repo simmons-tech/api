@@ -55,6 +55,23 @@ def serve_room_people( roomnum ):
 	people = get_room_people( roomnum )
 	return jsonify( usernames = people )
 
+@app.route('/_bulk/')
+def serve_bulk_request():
+        requests = request.json['requests']
+        results = []
+        for r in requests:
+                if r['type'] == 'room':
+                        results.append({
+				'type':'people',
+				'usernames':get_room_people
+			});
+                if r['type'] == 'person':
+                        results.append({
+				'type':'room',
+				'room':get_person_room
+			});
+        return jsonify(results = results)
+
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.
     	app.run()
