@@ -6,8 +6,7 @@
 
 this.RPC_call = function( path, callback ) {
 	console.log("Tried to call to {{server_path}}" + path);
-        $.getJSON("{{server_path}}" + path, callback);
-	return "";
+        return $.getJSON("{{server_path}}" + path, callback);
 }
 
 {% for api in apis %}

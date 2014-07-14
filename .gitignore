@@ -10,3 +10,5 @@ src/utils/db/db/*
 *.save
 
 *.pyc
+
+*.DS_STORE

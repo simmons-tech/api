@@ -71,3 +71,16 @@
     desc: Returns a raw dump of all avalible information on buses. Stopgap until a better API is enacted.
     args: []
     path: ""
+
+- name: packages
+  desc: Provides information about who has packages.
+  path: "packages/"
+  fxns:
+  - name: get_raw
+    desc: Returns a dump object with attrs that are usernames, and values that are numbers of packages.
+    args: []
+    path: ""
+  - name: get_packages_for_user
+    desc: Get the number of packages the given user has.
+    args: [username]
+    path: "<username>/"
