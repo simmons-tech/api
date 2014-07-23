@@ -20,6 +20,12 @@ from .. import db
 # Local imports
 from authorization_exceptions import *
 
+def get_groupnames():
+	group_db = db.init('group')
+	groups = []
+	return [ group.groupname for group in group_db.query(db.Group) ]
+	# TODO: Close db?
+
 def is_group( name ):
 	group_db = db.init('group')
 	group = group_db.query(db.Group).get( name )
