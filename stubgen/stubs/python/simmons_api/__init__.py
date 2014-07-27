@@ -4,6 +4,7 @@
 # This will ensure that changes are reflected in other
 # languages stubs.
 
+import login
 import rooms
 import rooming_assignment
 import people

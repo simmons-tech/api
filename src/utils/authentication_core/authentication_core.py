@@ -16,7 +16,6 @@ import os
 # Util imports
 from .. import db
 
-
 # Authcore imports
 import HMAC
 from authentication_exceptions import *

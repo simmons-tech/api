@@ -2,6 +2,14 @@
 # This method is used to generate stubs for both local and remote use on both clients and providers.
 ---
 
+- name: login
+  desc: Aux. methods for supporting the Simmons SSO System.
+  path: "login/"
+  fxns:
+  - name: check
+    desc: Checks if the user is logged in. If so, will provide their username.
+    args: []
+    path: "check"
 - name: rooms
   desc: Provides data about the physical characteristics of Simmons rooms.
   path: "rooms/"

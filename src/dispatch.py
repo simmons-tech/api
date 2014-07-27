@@ -1,7 +1,7 @@
 from flask import Flask
 from werkzeug.wsgi import DispatcherMiddleware
 
-from auth import app as auth_app
+from login import app as login_app
 from buses import app as buses_app
 from laundry import app as laundry_app
 from packages import app as packages_app
@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.wsgi_app = DispatcherMiddleware(
 	app.wsgi_app,
 	{
-		'/auth':		auth_app,
+		'/login':		login_app,
 		'/buses':		buses_app,
 		'/laundry':		laundry_app,
 		'/packages':		packages_app,

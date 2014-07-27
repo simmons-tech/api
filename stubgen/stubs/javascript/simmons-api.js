@@ -11,6 +11,16 @@ this.RPC_call = function( path, callback ) {
 }
 
 
+// Beginning stubs for login:
+// Aux. methods for supporting the Simmons SSO System.
+this.login = {
+	
+	// Checks if the user is logged in. If so, will provide their username.
+	check: function( callback ) {
+		return RPC_call( "login/check", callback );
+	},
+}; // End of stubs for login
+
 // Beginning stubs for rooms:
 // Provides data about the physical characteristics of Simmons rooms.
 this.rooms = {
