@@ -19,7 +19,6 @@ session_cache = {}
 def register_session(redirect, state, domain):
 	session_id = binascii.hexlify(os.urandom(16)) # Hex Encoding for URL Saftey.
 	session_cache[session_id] = (redirect, state, domain)
-	print session_id, redirect, state, domain
 	return session_id
 
 # Deletes the session and returns it.
@@ -59,7 +58,6 @@ def login_handler():
 	username = request.form['username']
 	password = request.form['password'] # TODO: This is horribly insecure... Use a burner key with SRP.
 	redirect_link, state, domain = recall_session( session_id ) # TODO: Handle case where session_id not in cache.
-	print 'Entering try...'
 	try:
 		token = authentication_core.authenticate( username, password )
 		response = make_response(redirect(redirect_link))
@@ -75,11 +73,8 @@ def invalidate_token():
 	username = request.cookies.get('username')
 	token = request.cookies.get('token')
         redirect_link = request.args.get('redirect', '/login/?redirect=http://simmons.mit.edu')
-	print username, token, redirect_link
-	print 'A'
 	try:
 		authentication_core.invalidate_token( username, token )
-		print 'B'	
 		return make_response(redirect(redirect_link))
 	except authentication_core.AuthenticationError:
 		return "500: Authentication Error"
@@ -89,10 +84,7 @@ def check_token():
 	try:
 		username = request.cookies.get('username')
 		token = request.cookies.get('token')
-		print 'A'
-
 		authentication_core.validate_token(username, token)
-		print 'C'
 		return jsonify(response='200', username=username)
 	except: # TODO: Restrict what this catches.
 		return jsonify(response='401')
