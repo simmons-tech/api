@@ -9,9 +9,11 @@ init-db:
 	@# TODO: List from db.py?
 	python db.py init user
 	python db.py init group
+	python db.py init room
 
 populate-db:
-	python authcore_setup.py
+	python init_auth.py
+	python init_rooms.py
 
 # Remove all runtime based information.
 # Should return the repo to a "source-only" state.
