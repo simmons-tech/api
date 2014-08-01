@@ -22,8 +22,8 @@ from authorization_exceptions import *
 
 def get_groupnames():
 	group_db = db.init('group')
-	groups = []
-	return [ group.groupname for group in group_db.query(db.Group) ]
+	groups = [ group.groupname for group in group_db.query(db.Group) ]
+	return groups
 	# TODO: Close db?
 
 def is_group( name ):

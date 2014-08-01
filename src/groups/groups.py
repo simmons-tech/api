@@ -8,15 +8,14 @@ app = Flask(__name__)
 
 @app.route('/')
 def serve_groups():
-	print authcore.get_groupnames()
 	return jsonify(groupnames = authcore.get_groupnames())
 
 @app.route('/<groupname>/')
-def serve_room( groupname ):
+def serve_members( groupname ):
 	return jsonify(
 		groupname = groupname,
-		method = list(authcore.members(groupname)))
+		members = list(authcore.members(groupname)))
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.
-    	app.run()
+	app.run()

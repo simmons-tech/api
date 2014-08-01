@@ -23,9 +23,9 @@ def register_session(redirect, state, domain):
 
 # Deletes the session and returns it.
 def recall_session( session_id ):
-	session_id = session_id.strip()
-	# TODO: Delete to preserve memory...
-	return session_cache[session_id]
+	result = session_cache[session_id]
+	del session_cache[session_id]
+	return result
 
 ################################
 
@@ -38,11 +38,11 @@ def domain_from_redirect( redirect ):
 @app.route('/')
 def login_page():
 	# Required args.
-        redirect = request.args.get('redirect', None)
+	redirect = request.args.get('redirect', None)
 	if redirect == None:
-		return "500: Must Provide Redirect (i.e. login/?redirect=google.com)"
+		return "500: Must Provide Redirect (i.e. login/?redirect=simmons.mit.edu/directory)"
 	# Optional args.
-        state = request.args.get('state', '')
+	state = request.args.get('state', '')
 	domain = request.args.get('domain', domain_from_redirect(redirect))
 
 	# TODO: Generate session key? Don't expose redirect, state, domain.
@@ -55,6 +55,7 @@ def login_page():
 def login_handler():
 	# TODO: This is only the local case, reflect that.
 	session_id = request.args.get('session_id')
+	session_id = session_id.strip() # TODO: Check if this is needed. It shouldn't be, but I'm paranoid about trailing newlines or something.
 	username = request.form['username']
 	password = request.form['password'] # TODO: This is horribly insecure... Use a burner key with SRP.
 	redirect_link, state, domain = recall_session( session_id ) # TODO: Handle case where session_id not in cache.
@@ -72,7 +73,7 @@ def login_handler():
 def invalidate_token():
 	username = request.cookies.get('username')
 	token = request.cookies.get('token')
-        redirect_link = request.args.get('redirect', '/login/?redirect=http://simmons.mit.edu')
+	redirect_link = request.args.get('redirect', '/login/?redirect=http://simmons.mit.edu')
 	try:
 		authentication_core.invalidate_token( username, token )
 		return make_response(redirect(redirect_link))
@@ -91,4 +92,4 @@ def check_token():
 
 if __name__ == "__main__":
 	app.debug = True # TODO: Remove in production.
-    	app.run()
+	app.run()
