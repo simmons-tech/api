@@ -1,5 +1,7 @@
 In no particular order...
 
+Ada Taylor '16
+Luke O'Malley '14
 Lars Johnson '15
 Allen Park '15
 Amol Bhave '17
