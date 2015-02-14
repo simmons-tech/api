@@ -8,7 +8,7 @@ from packages import app as packages_app
 from people import app as people_app
 from profile import app as profile_app
 from rooming_assignment import app as rooming_assignment_app
-from rooms import app as rooms_app
+#from rooms import app as rooms_app
 
 app = Flask(__name__)
 
@@ -22,7 +22,8 @@ app.wsgi_app = DispatcherMiddleware(
 		'/people':		people_app,
 		'/profile':		profile_app, # TODO: rename to profiles?
 		'/rooming_assignment':	rooming_assignment_app, # TODO: rename to rooming_assignments?
-		'/rooms':		rooms_app,
+#		'/rooms':		rooms_app,
 	})
 
-app.run()
+if __name__ == '__main__':
+	app.run()

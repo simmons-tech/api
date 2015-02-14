@@ -1,0 +1,11 @@
+AddHandler wsgi-script .py
+Options +ExecCGI
+
+RewriteEngine On
+RewriteBase /api
+
+RewriteCond %{REQUEST_URI} ^/api/$
+RewriteRule ^$ wsgi.py [L]
+
+RewriteCond %{REQUEST_URI} !/api/wsgi.py
+RewriteRule ^(.*)$ wsgi.py/$1 [L]
