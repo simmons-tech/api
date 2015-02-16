@@ -40,6 +40,7 @@ def sdb_session():
 ResidentBase = declarative_base()
 ActiveUsernamesBase = declarative_base()
 PackageBase = declarative_base()
+OfficersBase = declarative_base()
 
 class Resident(ResidentBase):
 	__tablename__ = 'directory'
@@ -84,3 +85,13 @@ class Package(PackageBase):
 	pickup                 = Column(Date)
 	pickup_by         = Column(String)
 	perishable         = Column(Boolean)
+
+class Officers(OfficersBase):
+	__tablename__ = 'officers'
+
+	officerid = Column(Integer, primary_key=True)
+	username = Column(String)
+	position = Column(String)
+	ordering = Column(Integer)
+	created = Column(Date)
+	removed = Column(Date)

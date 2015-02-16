@@ -12,3 +12,5 @@ src/utils/db/db/*
 *.pyc
 
 *.DS_STORE
+
+.venv
