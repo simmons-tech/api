@@ -28,7 +28,7 @@ except AssertionError:
 	sys.stderr.write('sdp.py: Empty password detected. Make sure the password is in {{apis_dir}}/utils/sdb/password.\n')
 	exit()
 
-db = create_engine('postgresql://dashboard:'+password+'@simmons.mit.edu/sdb')
+db = create_engine('postgresql://api:'+password+'@simmons.mit.edu/sdb')
 
 # TODO: Check the password is correct.
 
